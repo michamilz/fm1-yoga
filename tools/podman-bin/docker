@@ -1,0 +1,3 @@
+#!/bin/sh
+# fm1-base calls docker; run podman instead
+exec podman "$@"

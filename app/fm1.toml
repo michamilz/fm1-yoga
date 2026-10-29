@@ -1,0 +1,16 @@
+# The yoga firmware's build settings (fm1-base's tools/build.py: ./build.sh)
+name = "YOGA"                  # the build's files: yoga.fwsc
+id_prefix = "FM-1_19"          # package identity: dev FM-1_1900, releases FM-1_19XXYYZZ
+usb_manufacturer = "FM1 YOGA"
+usb_product = "YOGA FM-1"
+ble = false                    # no radio
+usb_audio_in = true            # the sound recordable over USB
+usb_audio_out = true           # a computer may play through the FM-1 (music for the class)
+words = "words.tsv"
+include = ["dsp"]
+o2 = ["dsp/amb.c"]             # the engine (AMB-1's garden with the yoga layer inside), at -O2
+# the site
+tagline = "Klaenge fuer die Endentspannung"
+repo = "https://github.com/michamilz/fm1-yoga"
+licence = "MPL-2.0"
+credits = "Built on AMB-1 by Charles Vestal and fm1-base and felucca-bsp, from Felucca by Leo Kuroshita (Huegelton Instruments)."

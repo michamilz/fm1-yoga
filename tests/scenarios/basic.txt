@@ -1,0 +1,193 @@
+# The panel in the host simulator: app/build/host/yoga_host tests/scenarios/basic.txt app/build/scenarios
+wait 800
+shot 01-boot.png
+expect state 0
+expect program 4
+# PRESETS: 5 minutes; ALGORITHM: binaural
+turn PRESET -1
+turn ALGO 1
+wait 100
+expect mode 1
+expect dirty 1
+shot 02-ready-reise.png
+tap PLAY
+wait 3000
+expect state 1
+shot 03-reise-start.png
+wav reise-start.wav
+wait 20000
+wavstop
+shot 04-reise-25s.png
+# into the first crossfade (174 > 396 or 432): a 5-minute journey's first boundary is near 50 s
+wait 40000
+shot 05-reise-65s.png
+tap FX
+wait 100
+expect page 1
+turn K2 -2
+shot 06-klang.png
+tap ENV
+wait 100
+expect page 2
+shot 07-garten.png
+tap GLO
+wait 100
+shot 08-setup.png
+tap HOME
+wait 100
+expect page 0
+tap PLAY
+wait 500
+expect state 2
+shot 09-pause.png
+tap PLAY
+wait 500
+expect state 1
+# REC held: wake up now
+press REC
+wait 1200
+release REC
+wait 200
+expect waking 1
+shot 10-aufwachen.png
+wait 80000
+expect state 3
+shot 11-namaste.png
+tap HOME
+wait 2500
+expect state 0
+tap SAVE
+wait 100
+expect dirty 0
+reboot
+wait 800
+expect mode 1
+expect program 4
+# the white keys choose no program while idle; SELECT does (two steps back from REISE: HERZ)
+tapkey w2
+wait 100
+expect program 4
+turn SELECT -2
+wait 100
+expect program 2
+shot 12-herz.png
+# the part pages: KLANG > DRONE, a detail from AUTO to a value and back
+tap FX
+wait 100
+turn SELECT 1
+wait 100
+shot 13-klang-drone.png
+turn K2 1
+wait 100
+expect dirty 1
+shot 14-drone-obertoene.png
+turn K2 -1
+turn SELECT 3
+wait 100
+shot 15-klang-raum.png
+tap ENV
+wait 100
+turn SELECT 1
+wait 100
+turn K2 1
+wait 100
+shot 16-garten-pads.png
+turn SELECT 3
+wait 100
+shot 17-garten-echo.png
+tap HOME
+wait 100
+# the handpan, idle: SEL, the white keys with their velocity
+tap SEL
+wait 100
+expect page 4
+shot 18-handpan-spiel.png
+key w0 down 110
+wait 40
+key w0 up
+key w3 down 60
+wait 40
+key w3 up
+wait 100
+expect hand >1
+wav handpan.wav
+strum 1 8 180
+wait 3000
+wavstop
+turn SELECT 1
+wait 100
+expect sub 1
+shot 19-handpan-raum.png
+tap SEL
+wait 100
+expect page 0
+# the small keys mute, lit while muted: 2 the drone, 6 the garden, 11 everything
+tap PLAY
+wait 2000
+tapkey b1
+wait 100
+expect mute 2
+tapkey b5
+wait 100
+expect mute 34
+tapkey b10
+wait 2000
+expect mute 1058
+shot 20-stumm.png
+leds
+tapkey b10
+tapkey b5
+tapkey b1
+wait 100
+expect mute 0
+press HOME
+wait 2200
+release HOME
+# HOME: K1 KLANG, K2 GARTEN (volumes)
+wait 2000
+turn K1 -2
+turn K2 1
+wait 100
+shot 21-home-volumes.png
+expect state 0
+# the language: GLO K3, kept by SAVE across a restart; then back to Deutsch
+tap GLO
+wait 100
+turn K3 2
+wait 100
+expect lang 2
+tap SAVE
+wait 100
+reboot
+wait 1000
+expect lang 2
+tap GLO
+wait 100
+turn K3 -2
+tap SAVE
+wait 100
+expect lang 0
+# the silent metronome: GLO > TAKT, 60 a minute on both, kept by SAVE; the LFO button lights at each beat
+tap HOME
+wait 100
+tap GLO
+wait 100
+turn SELECT 1
+wait 100
+turn K1 9
+turn K2 2
+wait 100
+expect beat 60
+tap SAVE
+wait 100
+reboot
+wait 1000
+expect beat 60
+tap GLO
+wait 100
+turn SELECT 1
+turn K1 -9
+tap SAVE
+wait 100
+expect beat 0
+expect lfo 0

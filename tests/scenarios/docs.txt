@@ -1,0 +1,66 @@
+# The README's screenshots (tools/gen_docs_figures.py runs this: app/build/docs/*.png)
+wait 1000
+# the screen never dims here (SETUP: DIMMEN NIE), so every shot is at full brightness
+tap GLO
+wait 100
+turn K2 -2
+wait 1600
+shot setup.png
+tap GLO
+wait 1600
+shot bereit.png
+tap PLAY
+wait 6000
+shot laeuft.png
+# REISE, 10 minutes: into the first crossfade (174 > 396)
+wait 108000
+shot uebergang.png
+tap FX
+wait 1600
+shot klang.png
+turn SELECT 1
+wait 1600
+shot klang-drone.png
+turn SELECT 1
+tapkey b2
+wait 1600
+shot klang-atem-stumm.png
+tapkey b2
+turn SELECT -2
+tap ENV
+wait 1600
+shot garten.png
+turn SELECT 1
+wait 1600
+shot garten-pads.png
+turn SELECT -1
+tap SEL
+wait 1600
+shot instrument-spiel.png
+turn SELECT 1
+wait 1600
+shot instrument-klang.png
+turn SELECT 1
+wait 1600
+shot instrument-raum.png
+turn SELECT -2
+tap HOME
+wait 100
+tap PLAY
+wait 2500
+shot pause.png
+tap PLAY
+wait 1600
+press REC
+wait 1200
+release REC
+wait 5000
+shot aufwachen.png
+wait 80000
+shot namaste.png
+tap HOME
+wait 3000
+turn SELECT 1
+turn PRESET 2
+wait 1600
+shot manuell.png
