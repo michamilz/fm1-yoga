@@ -251,6 +251,8 @@ def main():
         im = Image.open(p).convert("RGB")
         im.resize((im.width * 2, im.height * 2), Image.NEAREST).save(OUT / ("screen-" + p.name), optimize=True)
         print("docs/img/screen-" + p.name)
+    Image.open(SHOTS / "laeuft.png").convert("RGB").save(OUT / "hub-240.png", optimize=True)   # The Firmware Hub's card
+    print("docs/img/hub-240.png")
     running = Image.open(SHOTS / "laeuft.png")
     panel_figure(running)
     quickstart_figure(Image.open(SHOTS / "bereit.png"))

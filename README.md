@@ -473,6 +473,7 @@ Ebenso lässt sich der Klang des FM-1 per USB aufnehmen.
 | `tests/` | Klangtests (`yoga_test.c`) und Skripte für den Host-Simulator |
 | `tools/` | Bilder für diese README, Veröffentlichen, der Emulator-Server, die Podman-Weiche |
 | `docs/img/` | die Bilder dieser README (erzeugt von `tools/gen_docs_figures.py`) |
+| `fmhub.json`, `.github/workflows/release.yml` | die Karte auf The Firmware Hub; signierte Releases aus dem Quellcode |
 
 ### Voraussetzungen (macOS)
 
@@ -534,16 +535,23 @@ python3 tools/gen_docs_figures.py
 
 ### Veröffentlichen
 
-1. Ein Release bauen: `./build.sh --release 1.0` ergibt `app/build/yoga-1.0.fwsc`. Die Datei kommt auf die
-   GitHub-Releases-Seite.
-2. Die Website mit Web-Installer, Emulator und Download auf GitHub Pages veröffentlichen. Das Skript baut das
-   Release und den Emulator und schiebt die Seite in den Branch `gh-pages`:
+1. **Release:** Ein Versions-Tag genügt. GitHub baut die Firmware dann aus dem Quellcode, mit dem geteilten Workflow
+   der [Firmware Hub](https://thefirmwarehub.com) (`.github/workflows/release.yml`), führt die Tests aus, signiert
+   das Paket („Built from source on GitHub“) und hängt `yoga-1.0.fwsc` an das Release:
+
+   ```bash
+   git tag v1.0 && git push origin v1.0
+   ```
+
+2. **Website** mit Web-Installer, Emulator und Download auf GitHub Pages (Branch `gh-pages`). In den
+   Repository-Einstellungen unter **Pages** muss dafür als Quelle der Branch `gh-pages` gewählt sein:
 
    ```bash
    tools/publish.sh 1.0
    ```
 
-   In den Repository-Einstellungen unter **Pages** muss dafür als Quelle der Branch `gh-pages` gewählt sein.
+3. **The Firmware Hub:** Die Beschreibung für die Karte steht in `fmhub.json`, das Bild in `docs/img/hub-240.png`.
+   Die Identität eines Release ist `FM-1_19` gefolgt von der Version (1.0: `FM-1_19010000`).
 
 ---
 

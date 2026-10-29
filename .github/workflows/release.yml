@@ -1,0 +1,18 @@
+# A release from a version tag (git tag v1.0 && git push origin v1.0): GitHub builds the firmware from this source
+# with The Firmware Hub's shared workflow, signs it (an artifact attestation: "Built from source on GitHub") and
+# attaches app/build/yoga-VERSION.fwsc to the release. fm1-base is a submodule: the build fetches it first.
+name: release
+on:
+  push:
+    tags: ["v*"]
+jobs:
+  build:
+    uses: zvenson/fm1-build/.github/workflows/build.yml@v1
+    permissions:
+      contents: write        # the release
+      id-token: write        # the signing certificate
+      attestations: write    # the attestation
+    with:
+      build: git submodule update --init --recursive && ./build.sh --release "${GITHUB_REF_NAME#v}"
+      packages: app/build/yoga-*.fwsc
+      test: sh tests/run_tests.sh
