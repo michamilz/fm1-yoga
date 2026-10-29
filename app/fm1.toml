@@ -1,6 +1,6 @@
 # The yoga firmware's build settings (fm1-base's tools/build.py: ./build.sh)
 name = "YOGA"                  # the build's files: yoga.fwsc
-id_prefix = "FM-1_19"          # package identity: dev FM-1_1900, releases FM-1_19XXYYZZ
+id_prefix = "FM-1_432"         # package identity (432 Hz): dev FM-1_43200, releases FM-1_432XXYYZZ (1.0: FM-1_432010000)
 usb_manufacturer = "FM1 YOGA"
 usb_product = "YOGA FM-1"
 ble = false                    # no radio

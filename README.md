@@ -117,6 +117,19 @@ Dann im Ordner `fm1-yoga`:
 python3 base/tools/fm1_install.py yoga-1.0.fwsc
 ```
 
+### Deine Daten beim Wechsel der Firmware
+
+Jede Firmware speichert ihre Daten auf ihre eigene Art im selben Flash-Speicher des FM-1. **Sichere vor dem Wechsel
+deine Projekte, Sounds und Samples** mit der Backup-Funktion der Firmware, die gerade läuft.
+
+- FM1 YOGA speichert nur seine Einstellungen. Dafür nutzt es den Speicherbereich, in dem auch andere Firmware auf
+  Basis von Felucca bzw. fm1-base (z. B. AMB-1) ihre Einstellungen oder Projekte ablegt. Nach einem Wechsel kann
+  dort Gespeichertes einer anderen Firmware verloren sein.
+- Umgekehrt liest FM1 YOGA keine Daten anderer Firmware. Findet es keine eigenen Einstellungen, startet es mit
+  den Standardwerten.
+- Die Projekte und Samples der Original-Firmware von M-VAVE liest FM1 YOGA nicht. Wer zurückwechselt, spielt sie
+  aus seinem Backup zurück.
+
 ### Zurück zur Original-Firmware
 
 Im Web-Installer gibt es unten **„Back to the stock firmware“**. Lade dort die Datei **FM-1 V15** über den
@@ -551,7 +564,8 @@ python3 tools/gen_docs_figures.py
    ```
 
 3. **The Firmware Hub:** Die Beschreibung für die Karte steht in `fmhub.json`, das Bild in `docs/img/hub-240.png`.
-   Die Identität eines Release ist `FM-1_19` gefolgt von der Version (1.0: `FM-1_19010000`).
+   Die Identität eines Release ist `FM-1_432` gefolgt von der Version (1.0: `FM-1_432010000`). Über USB meldet sich
+   das Gerät als MIDI-Gerät „YOGA FM-1“.
 
 ---
 
