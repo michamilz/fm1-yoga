@@ -16,6 +16,8 @@
  * more than the ~40 % of their time the plain ring allows; it would then run dry and the recording crackle (not the
  * FM-1's own output). +5.8 ms of latency in the recording, its 4 KB ring in the pool (bsp/chip/usb.c) */
 #define FM1B_UAC_DEEP 1
+#define APP_OVERLOAD                     /* a render took over 90 % of its time: a voice gives way (yoga_dsp.c) */
+void app_overload(void);
 
 /* the store: the settings and the panel calibration (the platform's), where the template keeps them */
 enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_NOBJ };

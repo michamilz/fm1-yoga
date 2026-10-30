@@ -35,6 +35,7 @@ void app_init(void)
 }
 /* MASTER full keeps some headroom below the engine's soft clip */
 void app_render(int32_t *lr, uint32_t n, uint32_t gain_q12) { en_render(lr, n, gain_q12 * 3u / 4u); }
+void app_overload(void) { yoga_dsp_overload(); }
 void app_panic(void)
 {
     yp_stop();

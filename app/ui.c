@@ -332,8 +332,6 @@ static void draw_head(void)
                 set.yp.mode == YOGA_BIN ? "BIN" : "ISO", tone(set.yp.mode == YOGA_BIN ? COL_WARM : COL_ACCENT));
         if (yp_muted() >> YM_ALL & 1u)         /* all of it muted; a part's mute shows on its key */
             cv_text(196 - text_w(&FONT_XS, T(S_STUMM)), 12, &FONT_XS, T(S_STUMM), tone(COL_WARM));
-        else if (set.led_guide)
-            cv_text(176, 12, &FONT_XS, "LED", tone(COL_FAINT));
     }
     cv_blit(0, 0);
     ui.dot_shown = 0xFF;                     /* the header covered the beat's dot: draw it again */
@@ -480,6 +478,9 @@ static void draw_foot(void)
                 text_cat(c, n);
                 text_cat(c, " %   XRUN ");
                 uint_text(plat_xruns(), n);
+                text_cat(c, n);
+                text_cat(c, "   OVER ");
+                uint_text(yoga_dsp_overloads(), n);
                 text_cat(c, n);
                 centred(40, &FONT_XS, c, tone(COL_SOFT));
             }

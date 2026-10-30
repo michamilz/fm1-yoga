@@ -306,6 +306,9 @@ Je fester du anschlägst, desto lauter und heller klingt es.
 
 Alle Instrumente sind auf den Yoga-Grundton gestimmt, und die Skala passt immer: Es kann nichts „falsch“ klingen.
 
+Bis zu acht Töne klingen gleichzeitig. Kommt ein weiterer dazu, blendet der leiseste weich aus. Wird die Rechenzeit
+knapp, nimmt die Firmware vorübergehend Stimmen weg (mindestens vier bleiben), statt zu knacken.
+
 ### Kleine Tasten: stummschalten
 
 Die elf kleinen Tasten schalten Teile **weich stumm und wieder an** (1,5 Sekunden Überblendung).
@@ -397,6 +400,7 @@ Zwei Unterseiten, SELECT blättert:
 | **K1 LED-Atem** | An: Ein gedämpftes Licht wandert beim Einatmen über die langen Tasten nach rechts und beim Ausatmen zurück |
 | **K2 Dimmen** | Das Display dimmt nach 30 s oder 2 min ohne Bedienung, oder nie |
 | **K3 Sprache** | Deutsch, English, Sanskrit |
+| **Unten: CPU, XRUN, OVER** | die Auslastung der Klangberechnung. XRUN zählt Blöcke, die zu spät fertig wurden (sollte 0 bleiben), OVER, wie oft die Notbremse gegriffen hat |
 
 | TAKT | |
 |---|---|

@@ -419,6 +419,52 @@ static void test_no_clicks(void)
           (edge / ne) / (inner / ni));
 }
 
+/* a render ran long: voices give way softly, four stay, they come back after a calm */
+static void test_overload(void)
+{
+    float ml[BLOCK], mr[BLOCK], rs[BLOCK], es[BLOCK], prev = 0;
+    yoga_target_t t;
+    yp_settings_t s;
+    double step = 0, calm;
+    int after, full;
+    printf("Overload\n");
+    yp_defaults(&s);
+    s.program = YP_HERZ, s.x[YX_HINST] = YI_BOWLS;           /* long rings */
+    yp_init();
+    memset(&t, 0, sizeof t);
+    t.hand_level = 1.0f;
+    yoga_dsp_init();
+    yoga_dsp_set(&t);
+#define RUN(blocks) for (int b_ = 0; b_ < (blocks); b_++) { \
+        memset(ml, 0, sizeof ml), memset(mr, 0, sizeof mr), memset(rs, 0, sizeof rs), memset(es, 0, sizeof es); \
+        yoga_dsp_layer(ml, mr, rs, es, BLOCK); \
+        for (int j_ = 0; j_ < BLOCK; j_++) { step = fmax(step, fabs(ml[j_] - prev)); prev = ml[j_]; } }
+    for (int k = 0; k < 8; k++) {
+        yp_hand(&s, k, 100);
+        RUN(40);
+    }
+    full = yoga_dsp_hand_voices();
+    step = 0;
+    RUN(48);                                                 /* the same voices, undisturbed: the step they make */
+    calm = step;
+    step = 0;
+    for (int k = 0; k < 6; k++) {
+        yoga_dsp_overload();
+        RUN(8);
+    }
+    after = yoga_dsp_hand_voices();
+    CHECK(full == 8 && after == 4, "six overloads: %d voices down to %d, no fewer than four", full, after);
+    CHECK(step <= calm * 1.05, "they give way without a click (largest step %.4f, undisturbed %.4f)", step, calm);
+    CHECK(yoga_dsp_overloads() == 6, "the count shows on the SETUP page");
+    RUN(9 * SR / BLOCK);                                     /* a voice back every 2 s */
+    for (int k = 0; k < 8; k++) {                            /* after the calm: all eight again */
+        yp_hand(&s, k, 100);
+        RUN(8);
+    }
+    CHECK(yoga_dsp_hand_voices() >= 7, "after a calm the voices are back (%d)", yoga_dsp_hand_voices());
+#undef RUN
+}
+
 /* ENDLOS: the arc, then the last phase holds until REC */
 static void test_endless(void)
 {
@@ -581,6 +627,7 @@ int main(int argc, char **argv)
         test_mute();
         test_instruments();
         test_no_clicks();
+        test_overload();
         test_endless();
         test_programs();
         test_journey();

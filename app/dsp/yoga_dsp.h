@@ -46,6 +46,10 @@ enum { YOGA_HAND_NOTE, YOGA_HAND_DING, YOGA_HAND_TAK,       /* the handpan */
 int yoga_dsp_hand(float hz, float vel, float pan, float ring, float bright, int kind);
 void yoga_dsp_hand_silence(void);                          /* damp the handpan (panic) */
 int yoga_dsp_hand_voices(void);                            /* notes ringing (tests, the screen) */
+/* a render ran long (app_overload, from the audio interrupt): one voice fewer for a while, the quietest fading out
+ * softly; at least four stay, and the voices come back after 2 s of calm */
+void yoga_dsp_overload(void);
+uint32_t yoga_dsp_overloads(void);                         /* how often, since the start (the SETUP page) */
 uint32_t yoga_dsp_breath(void);                            /* the breathing LFO's phase, 0..65535 (0: exhaled) */
 
 /* render, from amb.c once a chunk (n <= 256 frames): first the garden's gain for the chunk (smoothed; amb.c scales
