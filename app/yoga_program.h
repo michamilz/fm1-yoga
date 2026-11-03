@@ -9,6 +9,7 @@ enum { YP_NCARRIER = 4 };              /* 174, 396, 432, 528 Hz */
 enum { YP_NDURATION = 6 };             /* 5, 10, 15, 20, 30 minutes, endless */
 enum { YP_NTIMER = 13 };               /* manual: endless, 5 .. 60 minutes */
 enum { YS_IDLE, YS_RUNNING, YS_PAUSED, YS_DONE };
+enum { YP_WARN_S = 30 };                /* the panel announces a crossfade this long before it */
 enum { YB_DELTA, YB_THETA, YB_ALPHA, YB_BETA };
 
 /* the details behind each level: KLANG's drone, breath, bowls and room, GARTEN's pads, bells, bass and echo.
@@ -59,6 +60,7 @@ typedef struct {
     float beat;
     uint32_t elapsed_s, remaining_s;   /* remaining 0: endless */
     uint16_t progress;                 /* 0..1000; 0 when endless */
+    uint8_t soon_s;                    /* a carrier's crossfade begins in this many seconds (YP_WARN_S at most); 0: none */
 } yp_status_t;
 
 extern const char *const YP_NAME[YP_NPROG];
@@ -97,3 +99,35 @@ enum { YI_HANDPAN, YI_KALIMBA, YI_TONGUE, YI_BOWLS, YI_KOSHI, YI_N };
 extern const char *const YI_NAME[YI_N];
 void yp_hand(const yp_settings_t *s, int key, int vel);
 float yp_hand_hz(const yp_settings_t *s, int key);
+int yp_bowl(const yp_settings_t *s);   /* the LFO button: a bowl; 0: no program sounding */
+
+/* the sequencer (yoga_seq.c): four patterns of up to 32 eighth notes, each a list of what was played. Kept in their
+ * own store object (app.h), so they outlast a change of the settings */
+enum { SEQ_N = 4, SEQ_STEPS = 32, SEQ_EVENTS = 96, SEQ_BOWL = 16, SEQ_MUTE = 32, SEQ_NONE = -1, SEQ_STOP = -2 };
+#define SEQ_MAGIC 0x31514553u          /* "SEQ1" */
+typedef struct {
+    uint8_t step, what, vel;           /* what: a key, SEQ_BOWL, or SEQ_MUTE + YM_* (vel 1 muted, 0 back) */
+} seq_ev_t;
+typedef struct {
+    uint8_t len, n;                    /* its steps (4..32), its events */
+    seq_ev_t ev[SEQ_EVENTS];
+} seq_pat_t;
+typedef struct {
+    uint32_t magic;
+    uint8_t tempo, rsv[3];             /* beats a minute, 20..120 */
+    seq_pat_t pat[SEQ_N];
+} seq_store_t;
+extern seq_store_t sq;
+typedef struct {
+    int8_t cur, next;                  /* the pattern (-1 none), the next (SEQ_NONE, SEQ_STOP: it ends) */
+    uint8_t playing, rec, full;
+    int16_t pos;
+    uint16_t keys;                     /* the keys (YP_HAND_KEYS) the pattern is playing: lit a moment */
+} seq_status_t;
+void seq_defaults(void);
+int seq_valid(void);
+void seq_key(int i);                   /* a pattern's key: running, the next one; before a start, the one to start with */
+int seq_record(void);                  /* REC: 1 on, 0 off, -1 no program sounding */
+void seq_clear(int i);
+void seq_status(seq_status_t *st);
+int seq_take_changed(void);            /* a pattern changed since the last ask */

@@ -19,9 +19,9 @@
 #define APP_OVERLOAD                     /* a render took over 90 % of its time: a voice gives way (yoga_dsp.c) */
 void app_overload(void);
 
-/* the store: the settings and the panel calibration (the platform's), where the template keeps them */
-enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_NOBJ };
-#define APP_STORE_MAP {0xFC000u, 0xDC000u}
+/* the store: the settings and the panel calibration (the platform's), where the template keeps them; the patterns */
+enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_SEQ, OBJ_NOBJ };
+#define APP_STORE_MAP {0xFC000u, 0xDC000u, 0xDA000u}
 
 #define SET_MAGIC 0x35474F59u            /* "YOG5" (the details, the instruments, the layers' volumes) */
 typedef struct {
@@ -46,6 +46,6 @@ void app_input_only(void);
 void app_say(const char *a, const char *b);
 
 /* the host simulator's checks (host/plat_host.c "expect"): state, program, mode, page, dirty, crossing, waking, hand,
- * mute, sub, lang, beat, lfo */
+ * mute, sub, lang, beat, lfo, seq, seqnext, seqplay, seqrec, seqn */
 #define APP_HOST_EXPECT
 int app_expect(const char *what, int *got);

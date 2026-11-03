@@ -1,0 +1,88 @@
+# The sequencer on the panel: a pattern chosen, recorded, changed, cleared, saved
+wait 800
+tap SEQ
+wait 100
+expect page 5
+tap EDIT
+wait 100
+expect seq 2
+expect seqplay 0
+tap EDIT
+wait 100
+expect seq -1
+tap REC
+wait 100
+expect seqrec 0
+tap LFO
+wait 100
+turn PRESET -1
+tap PLAY
+wait 3000
+expect state 1
+expect page 0
+expect seqplay 0
+tap SEQ
+wait 100
+turn K1 4
+turn K2 -6
+wait 100
+tap REC
+wait 200
+expect seqrec 1
+expect seqplay 1
+expect seq 0
+shot seq-rec.png
+tapkey w3
+wait 900
+tapkey w5
+wait 900
+tap LFO
+wait 900
+tapkey b2
+wait 900
+expect seqn 4
+expect dirty 1
+tap REC
+wait 200
+expect seqrec 0
+expect state 1
+tap OCT+
+wait 100
+expect seqnext 1
+shot seq-next.png
+wait 9000
+expect seq 1
+expect seqnext -1
+tap HOME
+wait 100
+expect page 0
+shot seq-player.png
+tap OCT+
+wait 100
+expect seqnext -2
+tap SEQ
+wait 100
+press OCT-
+wait 2200
+release OCT-
+wait 100
+expect seqnext -1
+tap SAVE
+wait 300
+expect dirty 0
+# REC on this page records, it does not wake: held, the program goes on
+press REC
+wait 1300
+release REC
+wait 100
+expect waking 0
+tap REC
+wait 100
+expect seqrec 0
+tap HOME
+wait 100
+press REC
+wait 1200
+release REC
+wait 200
+expect waking 1

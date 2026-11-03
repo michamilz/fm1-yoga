@@ -1,0 +1,24 @@
+# After the end: SELECT takes the choice over, the new program ready to start
+wait 800
+turn SELECT -9
+turn PRESET -9
+wait 100
+expect program 0
+tap PLAY
+wait 2000
+expect state 1
+press REC
+wait 1200
+release REC
+wait 80000
+expect state 3
+expect program 0
+turn SELECT 2
+wait 100
+expect state 0
+expect program 2
+shot ende-bereit.png
+tap PLAY
+wait 1000
+expect state 1
+expect program 2

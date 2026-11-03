@@ -33,11 +33,12 @@ behutsam wieder auf. Auf der Tastatur spielst du dazu eine Handpan, Kalimba, Kla
 7. [Die Programme](#die-programme)
 8. [ISO oder BIN: Lautsprecher oder Kopfhörer](#iso-oder-bin-lautsprecher-oder-kopfhörer)
 9. [Die Tastatur: Instrumente und Stummschalten](#die-tastatur-instrumente-und-stummschalten)
-10. [Einstellungen](#einstellungen)
-11. [Sprache](#sprache)
-12. [Häufige Fragen](#häufige-fragen)
-13. [Für Entwicklerinnen und Entwickler](#für-entwicklerinnen-und-entwickler)
-14. [Lizenz und Dank](#lizenz-und-dank)
+10. [Der Sequenzer: eigene Pattern](#der-sequenzer-eigene-pattern)
+11. [Einstellungen](#einstellungen)
+12. [Sprache](#sprache)
+13. [Häufige Fragen](#häufige-fragen)
+14. [Für Entwicklerinnen und Entwickler](#für-entwicklerinnen-und-entwickler)
+15. [Lizenz und Dank](#lizenz-und-dank)
 
 ---
 
@@ -69,6 +70,7 @@ Der Garten ist immer auf den Grundton der Yoga-Schicht gestimmt. Bei HERZ steht 
 - **Ein Instrument auf den Tasten**, mit Anschlagdynamik und jederzeit spielbar: Handpan, Kalimba,
   Zungentrommel, Klangschalen oder Koshi-Windspiel
 - **Stummschalten** jedes Teils mit den kleinen Tasten
+- **Sequenzer:** vier eigene Pattern live einspielen, in jedem Programm
 - **Sprache:** Deutsch, English oder Sanskrit
 - ein **stiller Takt** auf dem Display und/oder der LFO-Taste, als lautloses Metronom
 - Viele **Feineinstellungen**, die meisten auf AUTO, und alles dauerhaft speicherbar
@@ -164,7 +166,7 @@ Das Programm blendet über 20–30 Sekunden ein. Danach läuft alles von selbst:
 - **PLAY** pausiert und setzt fort (mit 2 Sekunden Ein- und Ausblenden).
 - **REC eine Sekunde halten** beginnt sofort das Aufwachen.
 - **HOME zwei Sekunden halten** blendet aus und beendet.
-- Am Ende erscheint **NAMASTE**. **PLAY** startet einen neuen Durchlauf, **HOME** kehrt in den Ruhezustand zurück.
+- Am Ende erscheint **NAMASTE**. **PLAY** startet einen neuen Durchlauf, **SELECT** wählt gleich das nächste Programm und stellt es startbereit, **HOME** kehrt in den Ruhezustand zurück.
 
 ---
 
@@ -173,7 +175,7 @@ Das Programm blendet über 20–30 Sekunden ein. Danach läuft alles von selbst:
 | Bedienelement | Funktion |
 |---|---|
 | **MASTER** | Gesamtlautstärke |
-| **SELECT** | Programm wählen (im Stillstand); auf den Einstellungsseiten: Unterseiten blättern |
+| **SELECT** | Programm wählen (im Stillstand und nach dem Ende); auf den Einstellungsseiten: Unterseiten blättern |
 | **PRESETS** | Dauer bzw. Timer (im Stillstand) |
 | **ALGORITHM** | ISO oder BIN, jederzeit umschaltbar |
 | **K1 / K2** (auf dem Home-Bildschirm) | Lautstärke KLANG / GARTEN |
@@ -185,12 +187,13 @@ Das Programm blendet über 20–30 Sekunden ein. Danach läuft alles von selbst:
 | **SEL** | Seite **INSTRUMENT** (die Tastatur) |
 | **GLO** | Seite **SETUP** (LED-Atem, Dimmen, Sprache, stiller Takt) |
 | **PLAY** | Start, Pause, Weiter; nach dem Ende: neuer Durchlauf |
-| **REC** | 1 s halten: jetzt aufwachen |
+| **REC** | 1 s halten: jetzt aufwachen; auf der Seite SEQUENZER: Aufnahme an/aus |
 | **SAVE** | Einstellungen dauerhaft speichern; leuchtet, solange etwas geändert ist |
 | **Lange Tasten** | das Instrument spielen |
 | **Kleine Tasten** | Teile stummschalten |
-| **LFO** | leuchtet im Takt, wenn der stille Takt auf LFO oder BEIDE steht |
-| OCT−, OCT+, EDIT, ARP, SEQ | frei |
+| **LFO** | schlägt eine Klangschale an, solange ein Programm läuft; leuchtet im Takt, wenn der stille Takt auf LFO oder BEIDE steht |
+| **SEQ** | Seite **SEQUENZER** |
+| **OCT−, OCT+, EDIT, ARP** | Pattern 1, 2, 3, 4 |
 
 Eine Einstellungsseite schließt du mit derselben Taste wieder oder mit **HOME**. Die Taste der offenen Seite
 leuchtet, **PLAY** leuchtet grün, solange ein Programm läuft.
@@ -234,6 +237,17 @@ Atemhilfe. Nach 30 Sekunden ohne Bedienung wird die Anzeige gedimmt; das lässt 
 
 **Übergänge bei REISE:** Zwei Grundtöne blenden über 35–55 Sekunden ineinander, ohne dass die Lautstärke einbricht
 oder ein Ton „rutscht“. Während der Überblendung zeigt der Bildschirm z. B. „174 > 396“.
+
+**Der Wechsel kündigt sich an,** damit du beim Spielen rechtzeitig Platz lässt:
+
+| Wann | Lange Tasten | Bildschirm |
+|---|---|---|
+| 30 Sekunden vorher | pulsieren ruhig und gedimmt | „WECHSEL IN 30“ zählt herunter, der Ring wird sandfarben |
+| während des Übergangs | leuchten dauerhaft gedimmt: besser nicht spielen | „174 > 396“, der Ring bleibt sandfarben |
+| danach | wieder der LED-Atem | Ring wieder türkis |
+
+Die Ankündigung erscheint immer, auch wenn der LED-Atem aus ist. Bei einem neuen Grundton in MANUELL beginnt der
+Wechsel sofort, dort gibt es nur die zweite Stufe.
 
 **ENDLOS** (PRESETS ganz nach rechts) gibt es in allen Programmen. Der Ablauf ist der eines 20-Minuten-Programms,
 danach bleibt es in der Ruhephase (Delta, bei REISE auf 528 Hz), bis du **REC 1 s hältst**. Statt der Restzeit
@@ -330,6 +344,64 @@ Die elf kleinen Tasten schalten Teile **weich stumm und wieder an** (1,5 Sekunde
 
 ---
 
+## Der Sequenzer: eigene Pattern
+
+<img src="docs/img/screen-sequenzer.png" width="240" align="right" alt="Die Seite SEQUENZER: Tempo, Länge und die vier Pattern">
+
+Du kannst vier eigene Pattern einspielen. Sie laufen in **allen Programmen** und wiederholen sich, bis du ein anderes
+wählst. Ein Pattern merkt sich, **was** du gespielt hast: Tasten, Klangschalen und Stummschaltungen. Die Tonhöhe kommt
+vom laufenden Programm. Bei REISE wandert ein Pattern deshalb mit dem Grundton mit, und auch Instrument und Skala
+kannst du nachträglich wechseln.
+
+**Pattern 1–4** liegen auf **OCT−, OCT+, EDIT und ARP**. Spielt ein Pattern einen Ton, leuchtet die zugehörige lange
+Taste kurz auf.
+
+<br clear="right">
+
+### Einspielen
+
+1. Starte ein Programm mit **PLAY**. Aufgenommen wird nur, solange eins läuft.
+2. Drücke **SEQ**. Mit K1 stellst du das Tempo ein, mit K2 die Länge.
+3. Drücke **REC**. Das Pattern läuft los, REC blinkt im Takt.
+4. Spiele auf den langen Tasten. Mit **LFO** schlägst du eine Klangschale an, die kleinen Tasten schalten stumm.
+5. Das Pattern läuft als Schleife, du kannst also Runde für Runde etwas dazulegen.
+6. Drücke **REC**, um die Aufnahme zu beenden, und **SAVE**, um die Pattern dauerhaft zu speichern.
+
+Alles wird auf das nächste Achtel gerundet. Ein Schritt ist eine Achtelnote, 32 Schritte dauern bei Tempo 40 also
+24 Sekunden. Ein Pattern fasst bis zu 96 Ereignisse. Ist es voll, zeigt das Display VOLL.
+
+Zum **Löschen** öffnest du die Seite SEQUENZER und hältst die Pattern-Taste 2 Sekunden. Auf dieser Seite löst das
+Halten von REC übrigens keine Aufwachphase aus. Dafür gehst du zurück auf HOME.
+
+### Pattern wechseln
+
+Der Wechsel kommt immer am Ende des laufenden Durchlaufs, so bleibt alles im Takt:
+
+| Du machst | Das passiert |
+|---|---|
+| keine Taste drücken | Das laufende Pattern wiederholt sich |
+| eine andere Pattern-Taste drücken | Sie blinkt und ist vorgemerkt. Am Ende des Durchlaufs wird gewechselt, sie leuchtet dann fest |
+| noch eine andere Taste drücken, solange die erste blinkt | Die neue Wahl ersetzt die alte |
+| dieselbe blinkende Taste nochmal drücken | Die Vormerkung ist zurückgenommen |
+| die leuchtende Taste drücken | Sie blinkt, das Pattern läuft zu Ende, danach ist Ruhe |
+
+Im Stillstand wählst du mit der Pattern-Taste aus, womit **PLAY** beginnt. Nochmal drücken nimmt die Wahl zurück; ohne
+Wahl läuft das Programm wie gewohnt ohne Pattern. Während ein Programm ohne Pattern läuft, startet die Taste sofort.
+
+### Stummschalten im Pattern
+
+- Ein Pattern setzt beim Start nichts zurück. Es führt nur seine aufgezeichneten Schaltungen aus. Ein stummer Teil
+  bleibt also stumm, bis ein Pattern oder du ihn wieder einschaltest.
+- Drückst du ohne Aufnahme eine kleine Taste, gilt das sofort. Hat das Pattern an einer Stelle eine eigene Schaltung
+  für diesen Teil, greift sie beim nächsten Durchlauf.
+
+### In der Aufwachphase
+
+Mit Beginn der Aufwachphase blendet das Pattern in 8 Sekunden aus, und eine laufende Aufnahme endet. So führt alles
+in die Stille. Beim nächsten Start ist das Pattern wieder ausgewählt.
+
+---
+
 ## Einstellungen
 
 Alle Einstellungsseiten funktionieren gleich:
@@ -416,7 +488,8 @@ von Atemzügen oder Sekunden in einer Haltung.
 
 **SAVE** speichert alle Einstellungen dauerhaft: Programm, Dauer, ISO/BIN, alle Pegel und Feineinstellungen,
 Instrument, SETUP, Sprache und der stille Takt. SAVE leuchtet, solange es ungespeicherte Änderungen gibt. Nicht gespeichert werden
-die Stumm-Zustände der kleinen Tasten.
+die Stumm-Zustände der kleinen Tasten. SAVE sichert auch die Pattern des Sequenzers. Sie liegen getrennt von den
+Einstellungen, ein Rücksetzen der Einstellungen lässt sie also unberührt.
 
 ---
 
@@ -464,6 +537,9 @@ Prüfe auf der Seite INSTRUMENT (SEL) den Pegel. Die kleinen Tasten spielen kein
 
 **Meine Einstellungen sind nach dem Ausschalten weg.**
 Vor dem Ausschalten **SAVE** drücken. SAVE leuchtet, solange etwas noch nicht gespeichert ist.
+
+**Mein Pattern ist nach dem Ausschalten weg.**
+Pattern bleiben nur mit **SAVE** erhalten. Nach einer Aufnahme leuchtet SAVE, bis du gespeichert hast.
 
 **Das Display ist so dunkel.**
 Es dimmt nach 30 Sekunden ohne Bedienung. Jeder Tastendruck macht es wieder hell. Unter SETUP → K2 lässt sich das

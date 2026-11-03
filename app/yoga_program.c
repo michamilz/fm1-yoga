@@ -116,7 +116,21 @@ static struct {
     float g[YM_N];
     uint8_t ready;
 } ym;
-void yp_mute(uint32_t mask) { ym.mask = mask & ((1u << YM_N) - 1u); }
+static void seq_capture(int what, int vel);
+static void seq_tick(const yp_settings_t *s, uint32_t dt);
+static void seq_lit_tick(uint32_t dt);
+static void seq_program_start(void);
+static void seq_program_stop(void);
+void yp_mute(uint32_t mask)
+{
+    uint32_t i, diff;
+    mask &= (1u << YM_N) - 1u;
+    diff = ym.mask ^ mask;
+    for (i = 0; i < YM_N; i++)
+        if (diff >> i & 1u)
+            seq_capture(SEQ_MUTE + (int)i, (int)(mask >> i & 1u));
+    ym.mask = mask;
+}
 uint32_t yp_muted(void) { return ym.mask; }
 static void ym_step(uint32_t dt)
 {
@@ -485,6 +499,7 @@ void yp_start(const yp_settings_t *s, uint32_t seed, uint32_t now)
     p.brh[1] = yp_frange(0.075f, 0.108f);
     yp_drift_next(0);
     p.opening_bowl = 2000u;
+    seq_program_start();
     yp_schedule_chime(10000u, 0, s);
     yp_garden_start(s, yp_rnd());
 }
@@ -527,7 +542,11 @@ void yp_stop(void)
 {
     if (p.state == YS_IDLE)
         return;
-    p.stopping = 1;
+    if (p.state == YS_DONE)
+        p.state = YS_IDLE;                           /* the end is silent already: nothing left to fade */
+    else
+        p.stopping = 1;
+    seq_program_stop();
     yoga_dsp_silence();
     en_play(0);
 }
@@ -590,7 +609,7 @@ static struct {
     int32_t wait;                            /* ms */
 } kq[KOSHI_Q];
 
-void yp_hand(const yp_settings_t *s, int key, int vel)
+static void yp_hand_play(const yp_settings_t *s, int key, int vel, float gain)
 {
     static const int KIND[YI_N] = {YOGA_HAND_NOTE, YOGA_HAND_KALIMBA, YOGA_HAND_TONGUE, YOGA_HAND_BOWL, YOGA_HAND_CHIME};
     static const float OCT[YI_N] = {1.0f, 2.0f, 1.0f, 1.0f, 4.0f};    /* each instrument's register over the ding */
@@ -599,7 +618,7 @@ void yp_hand(const yp_settings_t *s, int key, int vel)
           ring = 0.4f + 0.12f * (float)s->x[YX_HRING], bright = (float)s->x[YX_HBRIGHT] * 0.1f;
     if (key < 0 || key >= YP_HAND_KEYS)
         return;
-    v = 1.0f - d * (1.0f - fm_powf(v, 1.3f));            /* DYNAMIK 0: every note alike .. 10: all the touch */
+    v = (1.0f - d * (1.0f - fm_powf(v, 1.3f))) * gain;   /* DYNAMIK 0: every note alike .. 10: all the touch */
     if (inst == YI_HANDPAN && key == YP_HAND_TAK) {      /* the rim, a little right: two octaves over the ding */
         yoga_dsp_hand(yp_hand_hz(s, 0) * 4.0f, v, 0.62f, 1.0f, bright, YOGA_HAND_TAK);
         return;
@@ -625,6 +644,12 @@ void yp_hand(const yp_settings_t *s, int key, int vel)
     pan = key ? 0.5f + ((key & 1) ? -1.0f : 1.0f) * 0.07f * (float)((key + 1) / 2 % 5 + 1) : 0.5f;
     yoga_dsp_hand(yp_hand_hz(s, key) * OCT[inst], v, fm_clampf(pan, 0.1f, 0.9f), ring, bright,
                   inst == YI_HANDPAN && key == 0 ? YOGA_HAND_DING : KIND[inst]);
+}
+void yp_hand(const yp_settings_t *s, int key, int vel)
+{
+    if (key >= 0 && key < YP_HAND_KEYS)
+        seq_capture(key, clamp(vel, 1, 127));
+    yp_hand_play(s, key, vel, 1.0f);
 }
 static void yp_koshi(const yp_settings_t *s, uint32_t dt)
 {
@@ -659,6 +684,7 @@ void yp_update(const yp_settings_t *s, uint32_t now)
     y.mode = s->mode;
     ym_step(dt);
     yp_koshi(s, dt);
+    seq_lit_tick(dt);
     if (p.state == YS_IDLE) {
         y.carrier[0] = y.carrier[1] = 0.0f;
         y.blend = y.beat = y.detune = y.breath = y.level = y.bell_level = y.drone = y.octave = y.fifth = 0.0f;
@@ -676,8 +702,10 @@ void yp_update(const yp_settings_t *s, uint32_t now)
             p.stopping = 0;
         }
     }
-    if (p.state == YS_RUNNING && !p.stopping)
+    if (p.state == YS_RUNNING && !p.stopping) {
         p.elapsed += dt;
+        seq_tick(s, dt);
+    }
     t = p.elapsed;
     if (p.state != YS_DONE && p.state != YS_IDLE && !p.endless && t >= p.end) {
         p.state = YS_DONE;
@@ -850,9 +878,20 @@ void yp_status(yp_status_t *st)
         st->stage = "AUFWACHEN", st->stage_id = YST_AUFWACHEN;
     else
         st->stage = p.ph[yp_phase_at(p.elapsed)].stage, st->stage_id = p.ph[yp_phase_at(p.elapsed)].stage_id;
+    st->soon_s = 0;
+    if ((p.state == YS_RUNNING || p.state == YS_PAUSED) && !p.stopping && p.elapsed < p.wake_start) {
+        uint32_t i = yp_phase_at(p.elapsed);
+        if (i + 1u < p.nph && p.xf_half[i]) {        /* the next crossfade, known since the start */
+            uint32_t at = p.ph[i].end - p.xf_half[i];
+            if (p.elapsed < at && at - p.elapsed <= YP_WARN_S * 1000u)
+                st->soon_s = (uint8_t)((at - p.elapsed + 999u) / 1000u);
+        }
+    }
     if (!p.endless && p.state != YS_IDLE) {
         uint32_t t = p.elapsed < p.end ? p.elapsed : p.end;
         st->remaining_s = (p.end - t + 999u) / 1000u;
         st->progress = (uint16_t)(1000.0f * (float)t / (float)(p.end ? p.end : 1u));
     }
 }
+
+#include "yoga_seq.c"

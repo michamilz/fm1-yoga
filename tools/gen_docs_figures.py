@@ -86,8 +86,8 @@ KNOBS = {  # name: (x, y, what it does)
     "KNOB3": (890, 92, "MANUELL: Hz|Seite: Wert 3"), "KNOB4": (990, 92, "MANUELL: Ton|Seite: Wert 4"),
 }
 BUTTONS = [  # name, what it does (two rows of six)
-    ("FX", "KLANG"), ("SEL", "INSTRU-|MENT"), ("ENV", "GARTEN"), ("LFO", "TAKT"), ("EDIT", ""), ("GLO", "SETUP"),
-    ("HOME", "PLAYER|halten: Stopp"), ("SAVE", "SPEI-|CHERN"), ("ARP", ""), ("SEQ", ""), ("PLAY", "START|PAUSE"),
+    ("FX", "KLANG"), ("SEL", "INSTRU-|MENT"), ("ENV", "GARTEN"), ("LFO", "SCHALE|TAKT"), ("EDIT", "PATTERN 3"), ("GLO", "SETUP"),
+    ("HOME", "PLAYER|halten: Stopp"), ("SAVE", "SPEI-|CHERN"), ("ARP", "PATTERN 4"), ("SEQ", "SEQUEN-|ZER"), ("PLAY", "START|PAUSE"),
     ("REC", "halten:|AUFWACHEN"),
 ]
 PANEL_W, PANEL_H = 1100, 700
@@ -111,7 +111,7 @@ def draw_panel(c, screen, labels=True, keys_text=False):
         c.rect(x, 300, 88, 36, 8, BTN, outline="#44474c")
         c.text(x + 44, 318, t, small, LABEL)
     if labels:
-        c.text(165, 352, "frei", what, WHAT)
+        c.text(165, 352, "PATTERN 1 / 2", what, WHAT)
     c.rect(318, 34, 280, 280, 18, "#111214")
     c.paste(screen, 338, 54, 1)
     for i, (name, does) in enumerate(BUTTONS):

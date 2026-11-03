@@ -12,17 +12,24 @@
  *               ding), KLANG (ring, brightness, touch), RAUM (hall, echo), by SELECT
  *   small keys  mute, lit while their part sounds: 1 KLANG, 2-5 drone, breath, bowls, room; 6 GARTEN, 7-10 pads, bells,
  *               bass, echo; 11 everything (the handpan plays on). Live, not saved; each a 1.5 s fade
+ *   SEQ         the sequencer's page: its tempo, the pattern's length; REC there records, a pattern key held 2 s clears it
+ *   OCT- OCT+ EDIT ARP   patterns 1-4 (yoga_seq.c): running, the next one, at the end of this one; the lit one again
+ *               ends it; before a start, the one to start with
+ *   LFO         a bowl, while a program sounds
  *   SELECT      the program (while idle)           white keys: the handpan (ding, its scale, an octave up),
  *                                                            with the touch's velocity, at any time
  *   PRESETS     the duration / timer (idle)        K1..K4: the page's four values; on the player K1 KLANG and
  *   ALGORITHM   ISO / BIN, any time                          K2 GARTEN (volumes), in MANUELL K3 the rate, K4 the carrier
  *
+ * A carrier's change is announced: 30 s before it the white keys pulse dimly, the ring turns sand and the screen counts
+ * down; during it the keys stay dim, so a note can wait for the other side.
+ *
  * The screen: a header (name or message), the middle (the program, its stage and a ring that breathes with the
  * layer, the carrier in it; or a page's four values) and the foot (band, rate, time, progress). Drawn in strips
  * (gfx.c canvases), each only when it changed. */
 
-enum { PG_PLAYER, PG_KLANG, PG_GARTEN, PG_SETUP, PG_HAND, NPAGE };
-enum { HOLD_WAKE = 1000, HOLD_STOP = 2000 };
+enum { PG_PLAYER, PG_KLANG, PG_GARTEN, PG_SETUP, PG_HAND, PG_SEQ, NPAGE };
+enum { HOLD_WAKE = 1000, HOLD_STOP = 2000, HOLD_CLEAR = 2000 };
 
 #define COL_BG RGB(0, 0, 0)
 #define COL_TEXT RGB(214, 208, 196)          /* warm light grey */
@@ -32,6 +39,7 @@ enum { HOLD_WAKE = 1000, HOLD_STOP = 2000 };
 #define COL_WARM RGB(220, 168, 96)           /* sand */
 #define COL_LOW RGB(30, 34, 36)
 
+static const uint8_t PAT_BTN[SEQ_N] = {B_OCTDN, B_OCTUP, B_EDIT, B_ARP};
 static const uint8_t WK[16] = PLAT_WHITE_KEYS;
 static const uint8_t BK[11] = PLAT_BLACK_KEYS;
 /* the small keys mute (yoga_program.h YM_*), in their order on the keyboard: 3 + 2 | 3 + 2 | 1 */
@@ -45,7 +53,9 @@ static struct {
     char msg[2][24];
     uint32_t msg_until;
     uint32_t btn, keys;
-    uint32_t rec_t, home_t;                  /* when held (0: not, or its hold has acted) */
+    uint32_t rec_t, home_t, pat_t;           /* when held (0: not, or its hold has acted) */
+    uint8_t pat_i, seq_dirty;                /* the pattern key held; the patterns changed since the last SAVE */
+    seq_status_t sq;
     uint32_t last_input, entropy;
     uint8_t page, dirty;
     uint8_t sub[NPAGE];                      /* each page's part (SELECT) */
@@ -157,10 +167,10 @@ static float carrier_shown(void)
 /* the pages' rows: a level (0..10, or a setting) or a detail (yoga_program.h YX_*). KLANG and GARTEN have an
  * overview (the four levels) and a page for each of their four parts, turned by SELECT */
 /* the pages' and their parts' names (app/lang.c S_*; -1 none) */
-static const int8_t PAGE_NAME[NPAGE] = {-1, S_KLANG, S_GARTEN, S_SETUP, -1};
+static const int8_t PAGE_NAME[NPAGE] = {-1, S_KLANG, S_GARTEN, S_SETUP, -1, S_SEQUENZER};
 static const int8_t SUB_NAME[NPAGE][5] = {{-1, -1, -1, -1, -1}, {-1, S_DRONE, S_ATEM, S_SCHALEN, S_RAUM},
                                           {-1, S_PADS, S_GLOCKEN, S_BASS, S_ECHO}, {S_SYSTEM, S_TAKT, -1, -1, -1},
-                                          {S_SPIEL, S_KLANG_SUB, S_RAUM, -1, -1}};
+                                          {S_SPIEL, S_KLANG_SUB, S_RAUM, -1, -1}, {-1, -1, -1, -1, -1}};
 static const char *sub_name(int pg, int sub) { return SUB_NAME[pg][sub] >= 0 ? T(SUB_NAME[pg][sub]) : ""; }
 enum { NSUB = 5 };
 typedef struct {
@@ -170,6 +180,8 @@ typedef struct {
     uint8_t max;                             /* a level's top */
 } row_t;
 static int page_subs(int pg) { return pg == PG_KLANG || pg == PG_GARTEN ? NSUB : pg == PG_HAND ? 3 : pg == PG_SETUP ? 2 : 1; }
+/* the pattern the SEQ page shows */
+static int seq_shown(void) { return ui.sq.cur >= 0 ? ui.sq.cur : 0; }
 /* a page's name: the instrument page's (SEL) is its instrument's */
 static const char *page_name(int pg)
 {
@@ -196,6 +208,13 @@ static row_t row(int pg, int sub, int k)
             r.label = T(S_PEGEL), r.level = &set.yp.hand;
         else if (x >= 0)
             r.yx = x, r.label = yx_label(x);
+        return r;
+    }
+    if (pg == PG_SEQ) {
+        if (k == 0)
+            r.label = T(S_TEMPO), r.level = &sq.tempo, r.max = 120;
+        else if (k == 1)
+            r.label = T(S_LAENGE), r.level = &sq.pat[seq_shown()].len, r.max = SEQ_STEPS;
         return r;
     }
     if (pg == PG_SETUP && sub == 1) {        /* TAKT: the silent metronome */
@@ -260,7 +279,10 @@ static void row_text(const row_t *r, char *b)
             text_cat(b, *r->level == 1 ? "30 S" : "2 MIN");
     } else if (r->level == &set.lang)
         text_cat(b, LANG_NAME[*r->level % NLANG]);
-    else if (r->level == &set.beat) {
+    else if (r->level == &sq.tempo) {
+        uint_text(*r->level, b);
+        text_cat(b, " / MIN");
+    } else if (r->level == &set.beat) {
         if (!*r->level)
             text_cat(b, T(S_AUS));
         else {
@@ -299,6 +321,9 @@ static void centred(int32_t y, const felucca_font_t *f, const char *s, uint16_t 
 {
     cv_text((240 - text_w(f, s)) / 2, y, f, s, c);
 }
+/* a change of carrier ahead (the count) or under way: the screen's sand, a darker one when dimmed */
+static int changing(void) { return ui.st.state == YS_RUNNING && (ui.st.crossing || ui.st.soon_s); }
+static uint16_t change_col(void) { return dimmed() ? RGB(110, 84, 48) : COL_WARM; }
 static uint32_t ring_radius(void)
 {
     uint32_t b = yoga_dsp_breath(), s = b < 32768u ? b : 65535u - b;   /* a triangle, 0 exhaled .. 32767 */
@@ -327,6 +352,12 @@ static void draw_head(void)
         int32_t x = cv_text(10, 8, &FONT_B, ui.page == PG_PLAYER ? "YOGA" : page_name(ui.page), tone(COL_SOFT));
         if (page_subs(ui.page) > 1 && sub_name(ui.page, ui.sub[ui.page])[0])
             x = cv_text(x + 8, 8, &FONT_B, sub_name(ui.page, ui.sub[ui.page]), tone(COL_ACCENT));
+        if (ui.page == PG_PLAYER && ui.sq.playing) {   /* the pattern, and whether it records */
+            char t[4] = {'P', (char)('1' + ui.sq.cur), 0, 0};
+            x = cv_text(x + 8, 8, &FONT_B, t, tone(COL_ACCENT));
+            if (ui.sq.rec)
+                x = cv_text(x + 6, 12, &FONT_XS, ui.sq.full ? T(S_VOLL) : "REC", tone(COL_WARM));
+        }
         ui.head_end = x;
         cv_text(230 - text_w(&FONT_B, set.yp.mode == YOGA_BIN ? "BIN" : "ISO"), 8, &FONT_B,
                 set.yp.mode == YOGA_BIN ? "BIN" : "ISO", tone(set.yp.mode == YOGA_BIN ? COL_WARM : COL_ACCENT));
@@ -410,6 +441,24 @@ static void draw_mid(void)
                 w = 184 * *r.level / r.max;
             cv_rect(40, y + 20, w, 4, tone(COL_ACCENT));
         }
+        if (ui.page == PG_SEQ) {                 /* the four patterns, and where the playing one is */
+            for (k = 0; k < SEQ_N; k++) {
+                int32_t x = 16 + k * 54;
+                int on = ui.sq.playing && ui.sq.cur == k, sel = ui.sq.cur == k;
+                t[0] = (char)('1' + k), t[1] = 0;
+                cv_rect(x, 78, 46, 26, on ? tone(COL_ACCENT) : COL_LOW);
+                if (ui.sq.next == k)
+                    cv_rect(x, 106, 46, 3, tone(COL_WARM));
+                cv_text(x + 5, 83, &FONT_S, t, on ? COL_BG : tone(sel ? COL_TEXT : COL_SOFT));
+                uint_text(sq.pat[k].n, t);
+                cv_text(x + 41 - text_w(&FONT_XS, t), 87, &FONT_XS, t, on ? COL_BG : tone(COL_SOFT));
+            }
+            cv_rect(16, 116, 208, 4, COL_LOW);
+            if (ui.sq.playing)
+                cv_rect(16, 116, 208 * (ui.sq.pos + 1) / sq.pat[ui.sq.cur].len, 4, tone(ui.sq.rec ? COL_WARM : COL_ACCENT));
+            if (ui.sq.rec)
+                centred(124, &FONT_XS, ui.sq.full ? T(S_VOLL) : T(S_AUFNAHME), tone(COL_WARM));
+        }
     } else {
         const char *stage = ui.st.state == YS_IDLE ? T(S_BEREIT) : ui.st.state == YS_PAUSED ? T(S_PAUSE)
                                                                      : stage_name(ui.st.stage_id);
@@ -424,9 +473,17 @@ static void draw_mid(void)
             hz_text(ui.st.carrier_to, 0, a);
             text_cat(t, a);
             stage = t;
+        } else if (ui.st.soon_s && ui.st.state == YS_RUNNING) {   /* "WECHSEL IN 30" */
+            char a[8];
+            t[0] = 0;
+            text_cat(t, T(S_WECHSEL_IN));
+            text_cat(t, " ");
+            uint_text(ui.st.soon_s, a);
+            text_cat(t, a);
+            stage = t;
         }
-        centred(38, &FONT_S, stage, tone(ui.st.state == YS_DONE ? COL_WARM : COL_ACCENT));
-        disc(120, 100, (int32_t)r, tone(ui.st.state == YS_RUNNING ? COL_ACCENT : COL_FAINT));
+        centred(38, &FONT_S, stage, changing() ? change_col() : tone(ui.st.state == YS_DONE ? COL_WARM : COL_ACCENT));
+        disc(120, 100, (int32_t)r, changing() ? change_col() : tone(ui.st.state == YS_RUNNING ? COL_ACCENT : COL_FAINT));
         disc(120, 100, (int32_t)r - 3, COL_BG);
         hz_text(carrier_shown(), 0, t);
         centred(88, &FONT_M, t, tone(COL_TEXT));
@@ -484,6 +541,9 @@ static void draw_foot(void)
                 text_cat(c, n);
                 centred(40, &FONT_XS, c, tone(COL_SOFT));
             }
+        } else if (ui.page == PG_SEQ) {
+            centred(22, &FONT_XS, T(S_HINT_SEQ), tone(COL_FAINT));
+            centred(38, &FONT_XS, T(S_HINT_SEQ2), tone(COL_FAINT));
         } else
             centred(22, &FONT_XS, T(S_HINT_BACK), tone(COL_FAINT));
     } else if (ui.st.state == YS_IDLE) {
@@ -523,10 +583,13 @@ static void draw_foot(void)
 /* ---- lights: the page's button, PLAY green while it plays, SAVE while changed; one key walks with the breath -- */
 static void lights(void)
 {
-    static const uint8_t PAGE_BTN[NPAGE] = {B_HOME, B_FX, B_ENV, B_GLO, B_SEL};
+    static const uint8_t PAGE_BTN[NPAGE] = {B_HOME, B_FX, B_ENV, B_GLO, B_SEL, B_SEQ};
     uint32_t btn = 1u << PAGE_BTN[ui.page], keys = 0, dimkeys = 0, i, m = yp_muted();
-    for (i = 0; i < 16u; i++)                /* the white keys: lit while held */
+    for (i = 0; i < 16u; i++) {              /* the white keys: lit while held, and as the pattern plays them */
         keys |= ui.held & 1u << WK[i];
+        if (ui.sq.keys >> i & 1u)
+            keys |= 1u << WK[i];
+    }
     for (i = 0; i < YM_N; i++) {             /* the small keys: lit while their part sounds (its layer and all
                                               * unmuted too); a muted one goes dark */
         int layer = i == YM_ALL ? -1 : i >= YM_GARTEN ? YM_GARTEN : YM_KLANG;
@@ -542,7 +605,18 @@ static void lights(void)
         btn |= 1u << B_LFO;
     if (ui.st.waking && ui.st.state == YS_RUNNING)
         btn |= 1u << B_REC;
-    if (set.led_guide && ui.st.state == YS_RUNNING) {
+    for (i = 0; i < SEQ_N; i++) {            /* the patterns: lit the one, blinking what comes (or that it ends) */
+        int blink = ui.sq.next == (int)i || (ui.sq.cur == (int)i && ui.sq.next == SEQ_STOP);
+        if (blink ? plat_ms() >> 8 & 1u : ui.sq.cur == (int)i)
+            btn |= 1u << PAT_BTN[i];
+    }
+    if (ui.sq.rec && !(ui.sq.pos & 1))       /* recording: REC on the beat */
+        btn |= 1u << B_REC;
+    if (changing()) {                        /* the carrier's change: the keys pulse before it, stay dim during it */
+        if (ui.st.crossing || plat_ms() >> 10 & 1u)
+            for (i = 0; i < 16u; i++)
+                dimkeys |= 1u << WK[i];
+    } else if (set.led_guide && ui.st.state == YS_RUNNING) {
         uint32_t b = yoga_dsp_breath(), s = b < 32768u ? b : 65535u - b, k = s * 16u / 32768u;
         dimkeys = 1u << WK[k > 15u ? 15u : k];
     }
@@ -586,6 +660,24 @@ static void mute_key(uint32_t key)
     ui.redraw_head = ui.redraw_mid = 1;
 }
 
+/* a pattern's key: what it did, said */
+static void pattern_key(int i)
+{
+    char t[12] = "";
+    seq_key(i);
+    seq_status(&ui.sq);
+    t[0] = (char)('1' + i);
+    t[1] = 0;
+    {
+        char a[16] = "";
+        text_cat(a, T(S_PATTERN));
+        text_cat(a, " ");
+        text_cat(a, t);
+        app_say(a, T(ui.sq.next == i ? S_DANACH : ui.sq.next == SEQ_STOP ? S_ENDET : ui.sq.cur == i ? S_AN : S_AUS));
+    }
+    ui.redraw_head = ui.redraw_mid = 1;
+}
+
 static void input(void)
 {
     uint32_t btn = plat_buttons(), keys = plat_keys(), now = plat_ms(), pressed = btn & ~ui.btn,
@@ -595,6 +687,7 @@ static void input(void)
     for (k = 0; k < NE; k++)
         any |= (e[k] = plat_enc((int)k)) != 0;
     yp_status(&ui.st);
+    seq_status(&ui.sq);
     if (any) {
         if (dimmed())
             ui.redraw_head = ui.redraw_mid = ui.redraw_foot = 1;
@@ -611,7 +704,9 @@ static void input(void)
         ui.page = ui.page == PG_SETUP ? PG_PLAYER : PG_SETUP;
     if (pressed >> B_SEL & 1u)
         ui.page = ui.page == PG_HAND ? PG_PLAYER : PG_HAND;
-    if (pressed & (1u << B_FX | 1u << B_ENV | 1u << B_GLO | 1u << B_SEL)) {
+    if (pressed >> B_SEQ & 1u)
+        ui.page = ui.page == PG_SEQ ? PG_PLAYER : PG_SEQ;
+    if (pressed & (1u << B_FX | 1u << B_ENV | 1u << B_GLO | 1u << B_SEL | 1u << B_SEQ)) {
         ui.msg_until = 0;                    /* a new page: the last page's message goes */
         ui.redraw_head = ui.redraw_mid = ui.redraw_foot = 1;
     }
@@ -622,6 +717,10 @@ static void input(void)
         ui.redraw_head = ui.redraw_mid = ui.redraw_foot = 1;
         app_say(page_name(ui.page), sub_name(ui.page, ui.sub[ui.page])[0] ? sub_name(ui.page, ui.sub[ui.page]) : T(S_UEBERSICHT));
     } else if (e[EN_SELECT] && ui.page == PG_PLAYER && idle()) {
+        if (ui.st.state == YS_DONE) {        /* after the end: the choice, ready to start */
+            yp_stop();
+            ui.redraw_head = ui.redraw_mid = ui.redraw_foot = 1;
+        }
         step_u8(&set.yp.program, e[EN_SELECT], 0, YP_NPROG - 1);
         app_say(T(S_PROGRAMM), prog_name(set.yp.program));
     }
@@ -674,6 +773,14 @@ static void input(void)
             if (r.yx >= 0) {
                 if (detail_step(r.yx, d))
                     changed();
+            } else if (r.level == &sq.tempo || r.level == &sq.pat[seq_shown()].len) {
+                int st = r.level == &sq.tempo ? 5 : 4, lo = r.level == &sq.tempo ? 20 : 4;
+                int v = clamp(*r.level + d * st, lo, r.max);
+                if (v != *r.level) {
+                    *r.level = (uint8_t)v;
+                    ui.seq_dirty = 1;
+                    changed();
+                }
             } else if (r.level == &set.beat) {   /* AUS, then 20..120 in fives */
                 int v = set.beat ? set.beat / 5 - 3 : 0;   /* 0 off, 1 = 20, .. 21 = 120 */
                 v = clamp(v + d, 0, 21);
@@ -727,7 +834,30 @@ static void input(void)
             app_say(T(ui.st.state == YS_PAUSED ? S_WEITER : S_PAUSE), "");
         }
     }
-    if (pressed >> B_REC & 1u)
+    for (k = 0; k < SEQ_N; k++)
+        if (pressed >> PAT_BTN[k] & 1u) {
+            pattern_key((int)k);
+            ui.pat_t = ui.page == PG_SEQ ? (now ? now : 1u) : 0u;
+            ui.pat_i = (uint8_t)k;
+        }
+    if (ui.pat_t && (btn >> PAT_BTN[ui.pat_i] & 1u) && now - ui.pat_t >= HOLD_CLEAR) {
+        char a[16] = "", t[2] = {(char)('1' + ui.pat_i), 0};
+        ui.pat_t = 0;
+        seq_clear(ui.pat_i);
+        text_cat(a, T(S_PATTERN));
+        text_cat(a, " ");
+        text_cat(a, t);
+        app_say(a, T(S_GELOESCHT));
+    }
+    if (ui.pat_t && !(btn >> PAT_BTN[ui.pat_i] & 1u))
+        ui.pat_t = 0;
+    if ((pressed >> B_LFO & 1u) && !yp_bowl(&set.yp))
+        app_say(T(S_SCHALEN), T(S_ERST_START));
+    if ((pressed >> B_REC & 1u) && ui.page == PG_SEQ) {   /* here REC records: it does not wake */
+        int r = seq_record();
+        app_say(T(S_AUFNAHME), T(r > 0 ? S_AN : r == 0 ? S_AUS : S_ERST_START));
+        ui.redraw_mid = 1;
+    } else if (pressed >> B_REC & 1u)
         ui.rec_t = now ? now : 1u;
     if (ui.rec_t && (btn >> B_REC & 1u) && now - ui.rec_t >= HOLD_WAKE) {
         ui.rec_t = 0;
@@ -755,9 +885,14 @@ static void input(void)
             yp_stop();
         ui.redraw_head = ui.redraw_mid = ui.redraw_foot = 1;
     }
+    if (seq_take_changed()) {
+        ui.seq_dirty = 1;
+        changed();
+    }
     if (pressed >> B_SAVE & 1u) {
-        if (plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0) {
-            ui.dirty = 0;
+        if (plat_store_save(OBJ_SETTINGS, &set, sizeof set) == 0 &&
+            (!ui.seq_dirty || plat_store_save(OBJ_SEQ, &sq, sizeof sq) == 0)) {
+            ui.dirty = ui.seq_dirty = 0;
             app_say(T(S_GESPEICHERT), "");
         } else
             app_say(T(S_SPEICHERN), T(S_FEHLER));
@@ -766,6 +901,7 @@ static void input(void)
     ui.keys = keys;
     yp_update(&set.yp, now);
     yp_status(&ui.st);
+    seq_status(&ui.sq);
     lights();
 }
 
@@ -814,6 +950,7 @@ void app_frame(void)
     }
     s = mix(mix(ui.page | ui.sub[ui.page] << 4 | (uint32_t)set.yp.x[YX_HINST] << 8 | (uint32_t)set.lang << 12, set.yp.mode),
             set.led_guide * 2u + (uint32_t)dimmed() + (yp_muted() << 4));
+    s = mix(s, (uint32_t)(ui.sq.cur + 1) | (uint32_t)ui.sq.playing << 4 | (uint32_t)ui.sq.rec << 5 | (uint32_t)ui.sq.full << 6);
     if (s != ui.sig_head || ui.redraw_head) {
         ui.sig_head = s;
         ui.redraw_head = 0;
@@ -822,7 +959,11 @@ void app_frame(void)
     draw_beat_dot();
     s = mix(mix(mix(ui.page | ui.sub[ui.page] << 4, ui.st.state), ring_radius()), (uint32_t)carrier_shown());
     s = mix(mix(s, ui.st.crossing ? (uint32_t)ui.st.carrier_to : 0u), (uint32_t)dimmed());
-    s = mix(mix(s, ui.st.stage_id | (uint32_t)set.lang << 8), yp_muted());
+    s = mix(mix(s, ui.st.stage_id | (uint32_t)set.lang << 8 | (uint32_t)ui.st.soon_s << 12), yp_muted());
+    if (ui.page == PG_SEQ)                   /* the patterns, the step */
+        s = mix(mix(s, (uint32_t)(ui.sq.cur + 1) | (uint32_t)(ui.sq.next + 2) << 4 | (uint32_t)ui.sq.playing << 8 |
+                       (uint32_t)ui.sq.rec << 9 | (uint32_t)ui.sq.full << 10 | (uint32_t)ui.sq.pos << 11),
+                sq.pat[0].n | (uint32_t)sq.pat[1].n << 8 | (uint32_t)sq.pat[2].n << 16 | (uint32_t)sq.pat[3].n << 24);
     if (s != ui.sig_mid || ui.redraw_mid) {
         ui.sig_mid = s;
         ui.redraw_mid = 0;
@@ -868,6 +1009,16 @@ int app_expect(const char *what, int *got)
         *got = beat_lfo_lit();
     else if (!strcmp(what, "lang"))
         *got = set.lang;
+    else if (!strcmp(what, "seq"))
+        *got = ui.sq.cur;
+    else if (!strcmp(what, "seqnext"))
+        *got = ui.sq.next;
+    else if (!strcmp(what, "seqplay"))
+        *got = ui.sq.playing;
+    else if (!strcmp(what, "seqrec"))
+        *got = ui.sq.rec;
+    else if (!strcmp(what, "seqn"))
+        *got = sq.pat[seq_shown()].n;
     else if (!strcmp(what, "sub"))
         *got = ui.sub[ui.page];
     else

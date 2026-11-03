@@ -330,6 +330,163 @@ static void test_mute(void)
     yp_mute(0);
 }
 
+/* one frame of the program: the sequencer runs in yp_update */
+static void seq_run(const yp_settings_t *s, double *ms, double until)
+{
+    int32_t buf[2 * BLOCK];
+    while (*ms < until) {
+        yp_update(s, (uint32_t)*ms);
+        for (int k = 0; k < FRAME_BLOCKS; k++)
+            en_render(buf, BLOCK, APP_GAIN_FULL);
+        *ms += 1000.0 * BLOCK * FRAME_BLOCKS / SR;
+    }
+}
+
+/* the sequencer: recording, the grid, the next pattern, mutes, the end of a program */
+static void test_seq(void)
+{
+    yp_settings_t s;
+    seq_status_t st;
+    double ms = 0, step;
+    printf("Sequencer\n");
+    yp_defaults(&s);
+    s.program = YP_HERZ, s.duration = 0;
+    s.bowls = 0, s.bells = 0, s.pad = 0, s.bass = 0, s.x[YX_HINST] = YI_KALIMBA;
+    en_init(), yoga_dsp_init(), yp_init(), yp_mute(0), seq_defaults();
+    CHECK(seq_record() == -1, "no recording before a program sounds");
+    seq_key(2);
+    seq_status(&st);
+    CHECK(st.cur == 2 && !st.playing, "a pattern chosen before the start waits");
+    seq_key(2);
+    seq_status(&st);
+    CHECK(st.cur == -1, "pressed again: none");
+    sq.tempo = 60, sq.pat[0].len = 8, sq.pat[1].len = 4;
+    step = 500.0;
+    yp_start(&s, 11, 0);
+    seq_run(&s, &ms, 1000.0);
+    seq_status(&st);
+    CHECK(!st.playing, "no pattern chosen: the program runs alone");
+
+    CHECK(seq_record() == 1, "REC starts the first pattern");
+    seq_status(&st);
+    CHECK(st.playing && st.cur == 0, "it plays");
+    seq_run(&s, &ms, ms + 0.1 * step);       /* early in a step: rounded back */
+    yp_hand(&s, 3, 100);
+    CHECK(sq.pat[0].n == 1 && !(sq.pat[0].ev[0].vel & SEQ_FRESH), "a note early in its step keeps the step");
+    seq_run(&s, &ms, ms + 0.6 * step);       /* late in the next: rounded on, not played twice */
+    seq_status(&st);
+    yp_hand(&s, 5, 100);
+    CHECK(sq.pat[0].n == 2 && sq.pat[0].ev[1].step == st.pos + 1 && (sq.pat[0].ev[1].vel & SEQ_FRESH),
+          "a note late in its step goes to the next (step %d)", sq.pat[0].ev[1].step);
+    seq_run(&s, &ms, ms + step);
+    CHECK(yoga_dsp_hand_voices() == 2, "and sounds once on this pass (%d voices)", yoga_dsp_hand_voices());
+    yp_mute(1u << YM_DRONE);
+    yp_mute(0);
+    CHECK(sq.pat[0].n == 3, "a mute and its return on one step keep only the last");
+    yp_mute(1u << YM_BREATH);
+    CHECK(sq.pat[0].n == 4, "a mute is kept");
+    int before = sq.pat[0].n;
+    for (int i = 0; i < SEQ_EVENTS + 8; i++)
+        yp_hand(&s, i % 16, 90);
+    seq_status(&st);
+    CHECK(sq.pat[0].n <= before + 16 && sq.pat[0].n <= SEQ_EVENTS, "one step holds each key once");
+    CHECK(seq_record() == 0, "REC again: played, not recorded");
+    int kept = sq.pat[0].n;
+    for (int i = 0; i < SEQ_N; i++)
+        for (uint32_t j = 0; j < sq.pat[i].n; j++)
+            if (sq.pat[i].ev[j].vel & SEQ_FRESH)
+                kept = -1;
+    CHECK(kept > 0, "no mark left behind");
+    yp_hand(&s, 9, 100);
+    CHECK(sq.pat[0].n == (uint32_t)kept, "nothing kept once REC is off");
+
+    /* the mute comes back from the pattern (rule 2: a press lasts until the pattern's own) */
+    yp_mute(0);
+    seq_run(&s, &ms, ms + 8.0 * step + 100.0);
+    CHECK(yp_muted() >> YM_BREATH & 1u, "the pattern's mute overrides the hand on its next pass");
+    /* and it resets nothing else (rule 1) */
+    yp_mute(yp_muted() | 1u << YM_PADS);
+    seq_run(&s, &ms, ms + 8.0 * step + 100.0);
+    CHECK(yp_muted() >> YM_PADS & 1u, "a part the pattern does not name stays as it is");
+    yp_mute(0);
+
+    /* the next pattern: only at the end */
+    seq_key(1);
+    seq_status(&st);
+    CHECK(st.cur == 0 && st.next == 1, "the next one is marked");
+    seq_key(2);
+    seq_status(&st);
+    CHECK(st.next == 2, "another press replaces it");
+    seq_key(2);
+    seq_status(&st);
+    CHECK(st.next == SEQ_NONE, "the same press takes it back");
+    seq_key(1);
+    int switched = 0;
+    for (int i = 0; i < 90 && !switched; i++) {
+        int before_pos;
+        seq_status(&st);
+        before_pos = st.pos;
+        seq_run(&s, &ms, ms + 100.0);
+        seq_status(&st);
+        if (st.cur == 1) {
+            switched = before_pos == sq.pat[0].len - 1 && st.pos == 0;
+            break;
+        }
+    }
+    CHECK(switched, "the change comes at the pattern's end");
+    seq_run(&s, &ms, ms + 3.0 * 4.0 * step);
+    seq_status(&st);
+    CHECK(st.cur == 1 && st.playing, "and it repeats");
+    seq_key(1);
+    seq_status(&st);
+    CHECK(st.next == SEQ_STOP, "the lit one again: it ends");
+    seq_run(&s, &ms, ms + 5.0 * step);
+    seq_status(&st);
+    CHECK(!st.playing && st.cur == -1, "at its end");
+    seq_key(0);
+    seq_status(&st);
+    CHECK(st.playing && st.cur == 0, "chosen while the program runs, it starts now");
+
+    /* the wake-up: the pattern fades, nothing is recorded */
+    seq_record();
+    yp_finish();
+    seq_run(&s, &ms, ms + 200.0);
+    seq_status(&st);
+    CHECK(!st.rec, "the wake-up ends the recording");
+    CHECK(seq_record() == -1, "and takes no new one");
+    seq_run(&s, &ms, ms + (double)SEQ_FADE + 500.0);
+    seq_status(&st);
+    CHECK(!st.playing && st.cur == 0, "the pattern has faded; it stays chosen for the next start");
+    yp_stop();
+    seq_run(&s, &ms, ms + 2500.0);
+    yp_start(&s, 12, (uint32_t)ms);
+    seq_run(&s, &ms, ms + 100.0);
+    seq_status(&st);
+    CHECK(st.playing && st.pos == 0, "the next start plays it from the top");
+    int lit = 0;
+    for (int i = 0; i < 250; i++) {
+        seq_run(&s, &ms, ms + 20.0);
+        seq_status(&st);
+        lit |= st.keys;
+    }
+    CHECK(lit >> 3 & 1, "the key a pattern plays lights (keys %04x)", lit);
+    seq_clear(0);
+    CHECK(sq.pat[0].n == 0, "cleared");
+    seq_run(&s, &ms, ms + 300.0);
+    seq_status(&st);
+    CHECK(st.keys == 0, "and the lights go out");
+    yp_stop();
+    seq_run(&s, &ms, ms + 2500.0);
+    seq_status(&st);
+    CHECK(!st.playing, "a stop ends it");
+    sq.tempo = 10;
+    CHECK(!seq_valid(), "a bad store is refused");
+    seq_defaults();
+    CHECK(seq_valid() && sizeof(seq_store_t) < PLAT_STORE_MAX, "the store fits (%zu B)", sizeof(seq_store_t));
+    yp_mute(0);
+    seq.cur = -1;                            /* the tests after it run without a pattern */
+}
+
 /* the other instruments: their register, their ring, the Koshi's breeze */
 static void test_instruments(void)
 {
@@ -536,7 +693,29 @@ static void test_journey(void)
     yp_defaults(&s);
     s.program = YP_REISE, s.duration = 2, s.mode = YOGA_BIN;    /* 15 minutes */
     s.pad = s.bells = s.bass = s.echo = 0, s.bowls = 0, s.breath = 0;
+    p.rng = 1;                                /* yp_start mixes in the last draw: the same journey, whatever ran before */
     run(&t, &s, 77, 15 * 60 + 20, 1);
+    /* the announcement: counts down from 30 to the crossfade's first moment, once for each change */
+    {
+        int warned = 0, changes = 0, wrong = 0, last = 0;
+        yp_status_t st;
+        p.state = YS_RUNNING;
+        for (uint32_t ms = 0; ms + 1000u < p.wake_start; ms += 250u) {
+            p.elapsed = ms;
+            yp_status(&st);
+            uint32_t i = yp_phase_at(ms);
+            int in_xf = i + 1u < p.nph && p.xf_half[i] && ms + p.xf_half[i] > p.ph[i].end;
+            if (st.soon_s > YP_WARN_S || (st.soon_s && in_xf))
+                wrong++;
+            if (st.soon_s && !last)
+                warned++;
+            last = st.soon_s;
+        }
+        for (int i = 0; i + 1 < p.nph; i++)
+            changes += p.xf_half[i] != 0;
+        CHECK(warned == changes && !wrong, "each of the %d changes announced once, before it (%d)", changes, warned);
+        p.state = YS_DONE, p.elapsed = p.end;
+    }
     /* from the end of the fade-in to the wake-up: 8 s windows, 2 s apart */
     for (size_t w = 40; w + 10 < p.wake_start / 1000u; w += 2) {
         double a = rms(t.l + w * SR, 8 * SR), b = rms(t.l + (w + 2) * SR, 8 * SR);
@@ -625,6 +804,7 @@ int main(int argc, char **argv)
         test_layer();
         test_hand();
         test_mute();
+        test_seq();
         test_instruments();
         test_no_clicks();
         test_overload();

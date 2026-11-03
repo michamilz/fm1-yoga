@@ -31,6 +31,8 @@ void app_init(void)
         !yp_valid(&set.yp) || set.led_guide > 1u || set.dim > 2u || set.lang > 2u ||
         (set.beat && (set.beat < 20u || set.beat > 120u)) || set.beat_show > 2u)
         settings_defaults();
+    if (plat_store_load(OBJ_SEQ, &sq, sizeof sq) != (int)sizeof sq || !seq_valid())
+        seq_defaults();
     yp_room(&set.yp);                    /* a hall for the handpan, before any program */
 }
 /* MASTER full keeps some headroom below the engine's soft clip */
