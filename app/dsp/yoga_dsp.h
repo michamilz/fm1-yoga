@@ -46,6 +46,12 @@ enum { YOGA_HAND_NOTE, YOGA_HAND_DING, YOGA_HAND_TAK,       /* the handpan */
 int yoga_dsp_hand(float hz, float vel, float pan, float ring, float bright, int kind);
 void yoga_dsp_hand_silence(void);                          /* damp the handpan (panic) */
 int yoga_dsp_hand_voices(void);                            /* notes ringing (tests, the screen) */
+/* render (amb.c's bells): the garden's bell loops played on an instrument of the keys. inst 1.. the keys' instruments
+ * in their order (yoga_program.h YI_* + 1), the note after wait samples; gbells adds the voices to the garden's mix
+ * and sends at gain g, once a chunk; gquiet silences them (the garden's panic) */
+void yoga_dsp_gnote(float hz, float vel, float pan, float bright, int inst, int32_t wait);
+void yoga_dsp_gbells(float *ml, float *mr, float *rsend, float *esend, uint32_t n, float g);
+void yoga_dsp_gquiet(void);
 /* a render ran long (app_overload, from the audio interrupt): one voice fewer for a while, the quietest fading out
  * softly; at least four stay, and the voices come back after 2 s of calm */
 void yoga_dsp_overload(void);

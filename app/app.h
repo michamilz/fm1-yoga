@@ -23,7 +23,9 @@ void app_overload(void);
 enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_SEQ, OBJ_NOBJ };
 #define APP_STORE_MAP {0xFC000u, 0xDC000u, 0xDA000u}
 
-#define SET_MAGIC 0x35474F59u            /* "YOG5" (the details, the instruments, the layers' volumes) */
+#define SET_MAGIC 0x36474F59u            /* "YOG6" (the details, the instruments, the layers' volumes, the bells'
+                                          * instrument) */
+#define SET_MAGIC5 0x35474F59u           /* "YOG5": the same, one detail fewer (app.c takes it over) */
 typedef struct {
     uint32_t magic;
     yp_settings_t yp;                    /* the player's choices and levels */
@@ -32,7 +34,7 @@ typedef struct {
     uint8_t lang;                        /* the screen's language: 0 Deutsch, 1 English, 2 Sanskrit (app/lang.c) */
     uint8_t beat;                        /* the silent metronome: 0 off, else beats a minute (20..120) */
     uint8_t beat_show;                   /* where it shows: 0 the screen, 1 the LFO button, 2 both */
-    uint8_t rsv[3];
+    uint8_t rsv[2];                      /* (YOG5's 3: the details took one) */
 } settings_t;
 extern settings_t set;
 

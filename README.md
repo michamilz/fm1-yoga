@@ -55,7 +55,7 @@ behutsam wieder auf. Auf der Tastatur spielst du dazu eine Handpan, Kalimba, Kla
   - **Klangschalen** bei jedem Phasenwechsel und beim Aufwachen, dazu seltene, leise Glöckchen
 - **GARTEN**, die musikalische Schicht (aus [AMB-1](https://github.com/charlesvestal/fm1-amb)):
   - vier atmende **Pads**, die langsam wechselnde Akkorde bilden
-  - **Glocken** auf Tape-Loops unterschiedlicher Länge
+  - **Glocken** auf Tape-Loops unterschiedlicher Länge, wahlweise gespielt von einem Instrument der Tasten
   - ein gleitender **Bass**
   - **Tape-Echo**, ein langer Tape-Loop und ein großer **Plattenhall**
 
@@ -90,6 +90,12 @@ Klick auf „Switch on“, damit der Ton startet. Im Emulator gibt es keine Ansc
 
 Du brauchst ein **M-VAVE FM-1**, ein **USB-Datenkabel** (ein reines Ladekabel reicht nicht) und einen Computer mit
 **Chrome** oder **Edge**.
+
+FM1 YOGA läuft auf beiden bekannten Ausführungen des FM-1: mit dem ursprünglichen Flash-Speicher (Puya P25Q80) und
+mit dem UC25HQ80, den Geräte seit Herbst 2026 haben. Auf diesen neueren Geräten speichern die Versionen bis 1.0-rc2
+nichts (SAVE schlägt fehl) und können aus sich heraus kein Update installieren. Bring so ein Gerät dann mit dem
+Rettungsskript (siehe [Zurück zur Original-Firmware](#zurück-zur-original-firmware)) auf die Original-Firmware und
+installiere FM1 YOGA von dort neu.
 
 ### Mit dem Web-Installer (empfohlen)
 
@@ -440,9 +446,15 @@ während ein Programm läuft.
 |---|---|---|---|---|
 | Übersicht | Pads | Glocken | Bass | Echo |
 | PADS | Pegel | Farbe (AUTO, Rhodes, Voices) | Helligkeit (AUTO, 0–10) | Akkordwechsel (AUTO, 0 = selten – 10 = oft) |
-| GLOCKEN | Pegel | Dichte (AUTO, 0–10) | Klang (AUTO, weich – hell) | Oktave (AUTO, −2 bis +2) |
+| GLOCKEN | Instrument (Glocken, Handpan, Kalimba, Zunge, Schalen, Koshi) | Dichte (AUTO, 0–10) | Klang (AUTO, weich – hell) | Oktave (AUTO, −2 bis +2) |
 | BASS | Pegel | Oktave (AUTO, −1 bis +1) | Gleiten (AUTO, 0–10) | Quinte (AUTO, 0–10) |
 | ECHO | Pegel | Echozeit (AUTO, 1/4. bis 4 Takte) | Hall des Gartens (AUTO, 0–10) | Bewegung (AUTO, 0–10) |
+
+Die Glocken-Loops können statt der Glocken auch eines der Instrumente der Tasten spielen: Handpan, Kalimba, Zunge,
+Klangschalen oder Koshi. Das wählst du mit K1 auf der Unterseite GLOCKEN; der Pegel der Glocken steht dort deshalb
+nicht, sondern auf der Übersicht (K2). Die Loops haben dafür eigene Stimmen und nehmen dir beim Spielen auf den Tasten
+keine Töne weg. Instrument, Skala und Nachklang der Tasten (SEL) gelten für die Loops nicht: sie spielen die Töne des
+Gartens, und KLANG macht das Instrument heller oder weicher.
 
 ### INSTRUMENT (SEL): die Tastatur
 

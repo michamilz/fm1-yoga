@@ -682,6 +682,43 @@ static void test_programs(void)
         }
 }
 
+/* the garden's bells on the keys' instruments: about as loud as the bells, no clicks; WAVs to listen to with
+ * YOGA_WAVS=DIR */
+static void test_garden_inst(void)
+{
+    static const char *const NAME[YI_N + 1] = {"bells", "handpan", "kalimba", "tongue", "bowls", "koshi"};
+    double ref = 0;
+    printf("The garden's bells on an instrument\n");
+    for (int g = 0; g <= YI_N; g++) {
+        yp_settings_t s;
+        take_t t;
+        double level, peak = 0, step = 0;
+        const char *dir = getenv("YOGA_WAVS");
+        yp_defaults(&s);
+        s.program = YP_HERZ, s.duration = 0, s.klang = 0, s.pad = 0, s.bass = 0, s.bells = 8;
+        s.x[YX_GDENSITY] = 6, s.x[YX_GINST] = (int8_t)g;
+        run(&t, &s, 77u, 70, 0);
+        level = rms(t.l + 30 * SR, 40 * SR);
+        for (size_t i = 1; i < t.n; i++) {
+            peak = fmax(peak, fmax(fabs(t.l[i]), fabs(t.r[i])));
+            step = fmax(step, fmax(fabs(t.l[i] - t.l[i - 1]), fabs(t.r[i] - t.r[i - 1])));
+        }
+        if (!g)
+            ref = level;
+        else
+            CHECK(fabs(20 * log10(level / ref)) < 4.0, "%-8s %+.1f dB against the bells", NAME[g],
+                  20 * log10(level / ref));
+        CHECK(level > 0.003 && peak < 0.98 && step < 0.15, "%-8s rms %.4f, peak %.3f, largest step %.4f", NAME[g],
+              level, peak, step);
+        if (dir) {
+            char path[512];
+            snprintf(path, sizeof path, "%s/garden-%s.wav", dir, NAME[g]);
+            wav(path, &t);
+        }
+        take_free(&t);
+    }
+}
+
 /* the journey's crossfades, the drone alone (no garden, no bowls, no surf): the loudness, second to second */
 static void test_journey(void)
 {
@@ -810,6 +847,7 @@ int main(int argc, char **argv)
         test_overload();
         test_endless();
         test_programs();
+        test_garden_inst();
         test_journey();
         test_random(argv[0]);
         printf(failures ? "\n%d failed\n" : "\nall passed\n", failures);

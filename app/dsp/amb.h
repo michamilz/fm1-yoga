@@ -55,6 +55,7 @@ enum {
     P_PADTONE,                                        /* the pad's colour, set by the piece: Rhodes, Voices */
     P_BASSOCT, P_GLIDE, P_FIFTH,                      /* bass: its octave, its glide, how often it leans on the fifth */
     P_SWING, P_HATS,                                  /* pulse: swing, the hats' colour */
+    P_BINST,                                          /* yoga: the bells' instrument, 0 the bells, 1.. the keys' */
     P_NPARAMS
 };
 typedef struct {

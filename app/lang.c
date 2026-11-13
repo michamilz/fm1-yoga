@@ -81,11 +81,11 @@ static const char *const YX_LABEL[2][YX_N] = {
     {"OBERTOENE", "SCHWEBUNG", "PULS (ISO)", "TEMPO", "FARBE", "WELLE", "GLOECKCHEN", "TONLAGE", "NACHKLANG",
      "GROESSE", "ECHO", "FARBE", "HELLIGKEIT", "AKKORDE", "DICHTE", "KLANG", "OKTAVE", "OKTAVE", "GLEITEN",
      "QUINTE", "ZEIT", "HALL", "BEWEGUNG", "INSTRUMENT", "SKALA", "DING", "NACHKLANG", "HALL", "ECHO",
-     "HELLIGKEIT", "DYNAMIK"},
+     "HELLIGKEIT", "DYNAMIK", "INSTRUMENT"},
     {"OVERTONES", "BEATING", "PULSE (ISO)", "RATE", "COLOUR", "SWELL", "CHIMES", "REGISTER", "RING",
      "SIZE", "ECHO", "COLOUR", "BRIGHTNESS", "CHORDS", "DENSITY", "TONE", "OCTAVE", "OCTAVE", "GLIDE",
      "FIFTH", "TIME", "REVERB", "MOTION", "INSTRUMENT", "SCALE", "DING", "RING", "REVERB", "ECHO",
-     "BRIGHTNESS", "DYNAMICS"},
+     "BRIGHTNESS", "DYNAMICS", "INSTRUMENT"},
 };
 _Static_assert(sizeof YX_LABEL[0] / sizeof YX_LABEL[0][0] == YX_N, "a label for every detail");
 static const char *const PITCH_NAME[2][3] = {{"TIEF", "MITTEL", "HOCH"}, {"LOW", "MIDDLE", "HIGH"}};
@@ -105,6 +105,8 @@ static const char *yx_word(int i, int v)
         return T(S_AUTO);
     if (i == YX_HINST)
         return inst_name(v);
+    if (i == YX_GINST)                       /* the bells, or an instrument of the keys */
+        return v ? inst_name(v - 1) : T(S_GLOCKEN);
     if (i == YX_BPITCH)
         return PITCH_NAME[lang2()][clamp(v + 1, 0, 2)];
     if (i == YX_ETIME)

@@ -111,6 +111,7 @@ void yoga_dsp_init(void)
     y_qw = y_qr = y_silence = y_silence_seen = 0;
     for (i = 0; i < HANDS; i++)
         y_hand[i].on = 0;
+    yoga_dsp_gquiet();
     y_hqw = y_hqr = y_hsilence = y_hsilence_seen = 0;
     y_hand_on = 0;
     y_over = y_over_seen = y_cap_wait = 0;
@@ -205,16 +206,12 @@ static const ysound_t SOUNDS[YOGA_HAND_KINDS] = {
                          0x1C, 0.08f, 0.993f, 0.6f, 0.06f},
 };
 
-int yoga_dsp_hand(float hz, float vel, float pan, float ring, float bright, int kind)
+/* a strike from its recipe */
+static void strike_make(yhstrike_t *s, float hz, float vel, float pan, float ring, float bright, int kind)
 {
     const ysound_t *k = &SOUNDS[(unsigned)kind < YOGA_HAND_KINDS ? kind : YOGA_HAND_NOTE];
-    uint32_t w = y_hqw, next = (w + 1u) % HSTRIKES;
-    yhstrike_t *s;
     float b, v;
     int p;
-    if (next == y_hqr || hz <= 0.0f)
-        return -1;
-    s = &y_hq[w];
     v = fm_clampf(vel, 0.0f, 1.0f);
     b = fm_clampf(bright, 0.0f, 1.0f) * (0.4f + 0.6f * v);  /* a harder strike, more overtones */
     ring = kind == YOGA_HAND_TAK ? 1.0f : fm_clampf(ring, 0.25f, 2.5f);
@@ -229,6 +226,13 @@ int yoga_dsp_hand(float hz, float vel, float pan, float ring, float bright, int 
     s->att = k->att;
     s->gl = fm_cosf(fm_clampf(pan, 0.0f, 1.0f) * (FM_PI / 2.0f));
     s->gr = fm_sinf(fm_clampf(pan, 0.0f, 1.0f) * (FM_PI / 2.0f));
+}
+int yoga_dsp_hand(float hz, float vel, float pan, float ring, float bright, int kind)
+{
+    uint32_t w = y_hqw, next = (w + 1u) % HSTRIKES;
+    if (next == y_hqr || hz <= 0.0f)
+        return -1;
+    strike_make(&y_hq[w], hz, vel, pan, ring, bright, kind);
     Y_BARRIER();
     y_hqw = next;
     return 0;
@@ -253,6 +257,177 @@ uint32_t yoga_dsp_overloads(void) { return y_over; }
 
 /* a decay per 128 frames as a sample's: each sample a step, no stair at the chunk's edge */
 static float per_sample(float d128) { return fm_exp2f(fm_log2f(d128) * (1.0f / 128.0f)); }
+
+static void voice_start(yhand_t *v, const yhstrike_t *s, uint32_t seed)
+{
+    int p;
+    v->fade = 0;
+    for (p = 0; p < HP; p++) {
+        v->inc[p] = s->inc[p];
+        v->amp[p] = s->amp[p];
+        v->dec[p] = per_sample(s->dec[p]);
+        v->ph[p] = 0;
+    }
+    v->gl = s->gl;
+    v->gr = s->gr;
+    v->att = 0.0f;
+    v->nz = s->nz;
+    v->nzdec = s->nzdec;
+    v->nzk = s->nzk;
+    v->attk = s->att;
+    v->nlp1 = v->nlp2 = 0.0f;
+    v->seed = seed;
+    v->nact = (uint8_t)list_partials(v->amp, v->amp, v->act, HP);
+    v->on = 1;
+}
+
+static inline uint32_t xorshift(uint32_t x)
+{
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    return x;
+}
+
+/* a voice's next sample */
+static inline float voice_sample(yhand_t *v)
+{
+    float x = 0.0f;
+    int q;
+    for (q = 0; q < v->nact; q++) {
+        int p = v->act[q];
+        v->ph[p] += v->inc[p];
+        x += ysine(v->ph[p]) * v->amp[p];
+        v->amp[p] *= v->dec[p];
+    }
+    v->att += (1.0f - v->att) * v->attk;     /* the strike: a palm, a pluck, a mallet */
+    x *= v->att;
+    if (v->nz > 1e-4f) {                     /* the hand on the steel: a soft thump */
+        float w;
+        v->seed = xorshift(v->seed);
+        w = (float)(int32_t)v->seed * (1.0f / 2147483648.0f);
+        v->nlp1 += (w - v->nlp1) * v->nzk;
+        v->nlp2 += (v->nlp1 - v->nlp2) * v->nzk;
+        x += (v->nlp1 - v->nlp2) * v->nz;
+        v->nz *= v->nzdec;
+    }
+    if (v->fade) {                           /* giving way: out in FADE_N samples */
+        v->fg = fm_maxf(v->fg - 1.0f / FADE_N, 0.0f);
+        x *= v->fg;
+    }
+    return x;
+}
+/* rung out, or faded for a new note: free; returns how many still ring */
+static uint32_t voices_tidy(yhand_t *vs, int n)
+{
+    uint32_t ring = 0;
+    int b;
+    for (b = 0; b < n; b++) {
+        yhand_t *v = &vs[b];
+        int alive;
+        if (!v->on)
+            continue;
+        v->nact = (uint8_t)(alive = list_partials(v->amp, v->amp, v->act, HP));
+        v->on = alive && !(v->fade && v->fg <= 0.0f);
+        if (!v->on)
+            v->fade = 0;
+        ring += (uint32_t)v->on;
+    }
+    return ring;
+}
+
+/* the garden's bell loops on an instrument (amb.c's bell_voice): a few voices of their own, so the loops never take
+ * the player's notes; all in the render */
+enum { GHANDS = 4, GQ = 8 };
+static yhand_t y_gv[GHANDS];
+static struct {
+    yhstrike_t s;
+    int32_t wait;                            /* samples */
+    uint8_t on;
+} y_gq[GQ];
+static uint32_t y_gseed;
+
+void yoga_dsp_gnote(float hz, float vel, float pan, float bright, int inst, int32_t wait)
+{
+    /* the keys' instruments (yoga_program.h YI_*): handpan, kalimba, tongue drum, bowls, Koshi. Their register
+     * under the loops' (the bowls and the drums an octave down) and a shorter ring: the loops play on */
+    static const uint8_t KIND[5] = {YOGA_HAND_NOTE, YOGA_HAND_KALIMBA, YOGA_HAND_TONGUE, YOGA_HAND_BOWL, YOGA_HAND_CHIME};
+    static const float OCT[5] = {0.5f, 1.0f, 0.5f, 0.5f, 1.0f}, RING[5] = {0.6f, 0.9f, 0.7f, 0.35f, 0.8f};
+    static const float GAIN[5] = {2.05f, 4.0f, 2.95f, 1.75f, 2.2f};   /* as loud as the bells (tests/yoga_test.c) */
+    int q, p, i = inst - 1;
+    if (i < 0 || i > 4)
+        return;
+    for (q = 0; q < GQ && y_gq[q].on; q++)
+        ;
+    if (q == GQ)
+        return;                              /* a busy moment: this note left out */
+    strike_make(&y_gq[q].s, hz * OCT[i], vel, pan, RING[i], bright, KIND[i]);
+    for (p = 0; p < HP; p++)
+        y_gq[q].s.amp[p] *= GAIN[i];
+    y_gq[q].s.nz *= GAIN[i];
+    y_gq[q].wait = wait;
+    y_gq[q].on = 1;
+}
+void yoga_dsp_gquiet(void)
+{
+    int i;
+    for (i = 0; i < GHANDS; i++)
+        y_gv[i].on = 0;
+    for (i = 0; i < GQ; i++)
+        y_gq[i].on = 0;
+}
+void yoga_dsp_gbells(float *ml, float *mr, float *rsend, float *esend, uint32_t n, float g)
+{
+    uint32_t j;
+    int q, b, on = 0;
+    for (q = 0; q < GQ; q++) {               /* the notes due this chunk: a free voice, else the quietest gives way */
+        int pick = -1, fading = 0;
+        float quiet = 1e9f;
+        if (!y_gq[q].on)
+            continue;
+        if (y_gq[q].wait > (int32_t)n) {
+            y_gq[q].wait -= (int32_t)n;
+            continue;
+        }
+        for (b = 0; b < GHANDS; b++) {
+            float loud = y_gv[b].on ? y_gv[b].amp[0] : -1.0f;
+            fading |= y_gv[b].on && y_gv[b].fade;
+            if (loud < quiet && !(y_gv[b].on && y_gv[b].fade))
+                quiet = loud, pick = b;
+        }
+        if (pick < 0)
+            continue;                        /* all fading: next chunk */
+        if (y_gv[pick].on) {
+            if (!fading)
+                y_gv[pick].fade = 1, y_gv[pick].fg = 1.0f;
+            continue;
+        }
+        voice_start(&y_gv[pick], &y_gq[q].s, y_gseed = xorshift(y_gseed | 1u));
+        y_gq[q].on = 0;
+    }
+    for (b = 0; b < GHANDS; b++)
+        on |= y_gv[b].on;
+    if (!on)
+        return;
+    for (j = 0; j < n; j++) {
+        float l = 0.0f, r = 0.0f, m = 0.0f;
+        for (b = 0; b < GHANDS; b++) {
+            yhand_t *v = &y_gv[b];
+            float x;
+            if (!v->on)
+                continue;
+            x = voice_sample(v);
+            l += x * v->gl;
+            r += x * v->gr;
+            m += x;
+        }
+        ml[j] += l * g;                      /* as the bells go: dry, and to the plate and the echo */
+        mr[j] += r * g;
+        rsend[j] += m * 0.7f * g;
+        esend[j] += m * 0.85f * g;
+    }
+    voices_tidy(y_gv, GHANDS);
+}
 
 static void take_hands(void)
 {
@@ -290,7 +465,7 @@ static void take_hands(void)
     }
     while (y_hqr != y_hqw) {
         const yhstrike_t *s = &y_hq[y_hqr];
-        int i, p, pick = 0, on = 0;
+        int i, pick = 0, on = 0;
         float quiet = 1e9f;
         int fading = 0;
         for (i = 0; i < HANDS; i++) {          /* a free voice, else the quietest */
@@ -316,24 +491,7 @@ static void take_hands(void)
                 y_hand[pick].fade = 1, y_hand[pick].fg = 1.0f;
             break;
         }
-        y_hand[pick].fade = 0;
-        for (p = 0; p < HP; p++) {
-            y_hand[pick].inc[p] = s->inc[p];
-            y_hand[pick].amp[p] = s->amp[p];
-            y_hand[pick].dec[p] = per_sample(s->dec[p]);
-            y_hand[pick].ph[p] = 0;
-        }
-        y_hand[pick].gl = s->gl;
-        y_hand[pick].gr = s->gr;
-        y_hand[pick].att = 0.0f;
-        y_hand[pick].nz = s->nz;
-        y_hand[pick].nzdec = s->nzdec;
-        y_hand[pick].nzk = s->nzk;
-        y_hand[pick].attk = s->att;
-        y_hand[pick].nlp1 = y_hand[pick].nlp2 = 0.0f;
-        y_hand[pick].seed = 0x2545F491u ^ (uint32_t)pick * 0x9E3779B9u ^ y_hqr;
-        y_hand[pick].nact = (uint8_t)list_partials(y_hand[pick].amp, y_hand[pick].amp, y_hand[pick].act, HP);
-        y_hand[pick].on = 1;
+        voice_start(&y_hand[pick], s, 0x2545F491u ^ (uint32_t)pick * 0x9E3779B9u ^ y_hqr);
         Y_BARRIER();
         y_hqr = (y_hqr + 1u) % HSTRIKES;
     }
@@ -397,14 +555,6 @@ static void take_strikes(void)
 }
 
 static inline float smooth(float v, float t, float k) { return v + (t - v) * k; }
-
-static inline uint32_t xorshift(uint32_t x)
-{
-    x ^= x << 13;
-    x ^= x >> 17;
-    x ^= x << 5;
-    return x;
-}
 
 float yoga_dsp_garden(uint32_t n)
 {
@@ -540,30 +690,10 @@ void yoga_dsp_layer(float *ml, float *mr, float *rsend, float *esend, uint32_t n
                 float hl = 0.0f, hr = 0.0f;
                 for (b = 0; b < HANDS; b++) {
                     yhand_t *v = &y_hand[b];
-                    float x = 0.0f;
+                    float x;
                     if (!v->on)
                         continue;
-                    for (q = 0; q < v->nact; q++) {
-                        p = v->act[q];
-                        v->ph[p] += v->inc[p];
-                        x += ysine(v->ph[p]) * v->amp[p];
-                        v->amp[p] *= v->dec[p];
-                    }
-                    v->att += (1.0f - v->att) * v->attk;             /* the strike: a palm, a pluck, a mallet */
-                    x *= v->att;
-                    if (v->nz > 1e-4f) {                             /* the hand on the steel: a soft thump */
-                        float w;
-                        v->seed = xorshift(v->seed);
-                        w = (float)(int32_t)v->seed * (1.0f / 2147483648.0f);
-                        v->nlp1 += (w - v->nlp1) * v->nzk;
-                        v->nlp2 += (v->nlp1 - v->nlp2) * v->nzk;
-                        x += (v->nlp1 - v->nlp2) * v->nz;
-                        v->nz *= v->nzdec;
-                    }
-                    if (v->fade) {                                   /* giving way: out in FADE_N samples */
-                        v->fg = fm_maxf(v->fg - 1.0f / FADE_N, 0.0f);
-                        x *= v->fg;
-                    }
+                    x = voice_sample(v);
                     hl += x * v->gl;
                     hr += x * v->gr;
                 }
@@ -588,17 +718,7 @@ void yoga_dsp_layer(float *ml, float *mr, float *rsend, float *esend, uint32_t n
             if (!v->on)
                 v->fade = 0;
         }
-        for (b = 0; b < HANDS; b++) {
-            yhand_t *v = &y_hand[b];
-            int alive;
-            if (!v->on)
-                continue;
-            v->nact = (uint8_t)(alive = list_partials(v->amp, v->amp, v->act, HP));
-            v->on = alive && !(v->fade && v->fg <= 0.0f);
-            if (!v->on)
-                v->fade = 0;
-            ring += (uint32_t)v->on;
-        }
+        ring = voices_tidy(y_hand, HANDS);
         y_hand_on = ring;
         if (y_cap < HANDS) {                   /* calm for a while: a voice back */
             if (y_cap_wait > n)

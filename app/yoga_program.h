@@ -26,6 +26,7 @@ enum {
     YX_HINST,                                  /* the instrument on the keys: handpan, kalimba, tongue drum, bowls, Koshi */
     YX_HSCALE, YX_HDING, YX_HRING,             /* its scale, its ding (AUTO: the carrier), its ring */
     YX_HSPACE, YX_HECHO, YX_HBRIGHT, YX_HDYN,  /* and its hall, echo, brightness, how much the touch matters */
+    YX_GINST,                                  /* the bells' instrument: the bells, or one of the keys' (YI_* + 1) */
     YX_N
 };
 #define YX_AUTO (-128)

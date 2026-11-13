@@ -26,6 +26,7 @@ static const char *const N_ETIME[] = {"1/4.", "1/2", "1/2.", "1 TAKT", "2 TAKTE"
 static const char *const N_SCALE[YP_NSCALE] = {"KURD", "CELTIC", "INTEGRAL", "PYGMY", "HIJAZ", "SABYE", "AKEBONO"};
 static const char *const N_DING[] = {"174", "396", "432", "528"};
 static const char *const N_INST[YI_N] = {"HANDPAN", "KALIMBA", "ZUNGE", "SCHALEN", "KOSHI"};
+static const char *const N_GINST[YI_N + 1] = {"GLOCKEN", "HANDPAN", "KALIMBA", "ZUNGE", "SCHALEN", "KOSHI"};
 /* the handpans' scales: the eight tone fields around the ding, in semitones above it */
 static const uint8_t SCALE[YP_NSCALE][8] = {
     {7, 8, 10, 12, 14, 15, 17, 19},          /* Kurd: minor, the classic */
@@ -57,6 +58,7 @@ const yx_info_t YX[YX_N] = {
     [YX_HRING] = {"NACHKLANG", 0, 10, 5, 0, 0},
     [YX_HSPACE] = {"HALL", 0, 10, 6, 0, 0},           [YX_HECHO] = {"ECHO", 0, 10, 2, 0, 0},
     [YX_HBRIGHT] = {"HELLIGKEIT", 0, 10, 5, 0, 0},    [YX_HDYN] = {"DYNAMIK", 0, 10, 7, 0, 0},
+    [YX_GINST] = {"INSTRUMENT", 0, YI_N, 0, 0, N_GINST},
 };
 /* the details the garden takes (amb.c): its parameter = value * mul + add; AUTO: the start's recipe */
 static const struct {
@@ -67,7 +69,7 @@ static const struct {
     {YX_PDRIFT, P_DRIFT, -8, 100},   {YX_GDENSITY, P_DENSITY, 10, 0}, {YX_GTONE, P_BTONE, 10, 0},
     {YX_GOCT, P_BOCT, 1, 0},         {YX_BOCT, P_BASSOCT, 1, 0},    {YX_BGLIDE, P_GLIDE, 10, 0},
     {YX_BFIFTH, P_FIFTH, 10, 0},     {YX_ETIME, P_ETIME, 1, 0},     {YX_EREVERB, P_REVERB, 10, 0},
-    {YX_EMOTION, P_MOTION, 10, 0},
+    {YX_EMOTION, P_MOTION, 10, 0},   {YX_GINST, P_BINST, 1, 0},
 };
 #define NGMAP (sizeof GMAP / sizeof GMAP[0])
 

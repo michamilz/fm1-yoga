@@ -1,0 +1,25 @@
+# The garden's bells on an instrument: GLOCKEN's first row, kept by SAVE
+wait 800
+tap ENV
+wait 100
+expect page 2
+turn SELECT 2
+wait 100
+expect sub 2
+turn K1 2
+wait 100
+expect dirty 1
+shot garten-glocken-kalimba.png
+tap PLAY
+wait 20000
+expect state 1
+tap SAVE
+wait 300
+expect dirty 0
+reboot
+wait 1000
+tap ENV
+turn SELECT -9
+turn SELECT 2
+wait 100
+shot garten-glocken-reboot.png

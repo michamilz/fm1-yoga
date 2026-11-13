@@ -35,6 +35,7 @@ static const en_param_t PARAMS[P_NPARAMS] = {
     {"Mode", 0, EN_NMODES - 1, 1}, {"Bell oct", -2, 2, 0}, {"Pad tone", 0, 1, 0},
     {"Bass oct", -1, 1, 0},   {"Glide", 0, 100, 20},    {"Fifth", 0, 100, 35},
     {"Swing", 0, 100, 0},     {"Hats", 0, 100, 50},
+    {"Bell inst", 0, 5, 0},
 };
 const en_param_t *en_param_info(int i) { return (i >= 0 && i < P_NPARAMS) ? &PARAMS[i] : &PARAMS[0]; }
 
@@ -744,6 +745,11 @@ static void bell_voice(int l, int n, float vel, int32_t wait)
     int i, best = 0, ri;
     float lo = 9.0f, t60, p;
     bell_t *v;
+    if (par[P_BINST] > 0) {                     /* yoga: the loop on an instrument of the keys (yoga_dsp.c) */
+        yoga_dsp_gnote(mtof((float)n), vel, (LOOP_PAN[l] + 1.0f) * 0.5f, btone, par[P_BINST], wait);
+        en_loop_glow[l] = 1.0f;
+        return;
+    }
     for (i = 0; i < NBELL; i++) {               /* a free voice, or the quietest */
         float a = bell[i].on ? bell[i].amp : -1.0f;
         if (a < lo) {
@@ -1277,6 +1283,7 @@ static void quiet(void)
     int i;
     for (i = 0; i < NBELL; i++)
         bell[i].on = 0;
+    yoga_dsp_gquiet();
     for (i = 0; i < EN_NDRUM; i++)
         drum[i].on = 0, drum[i].wait = 0;
     for (i = 0; i < EN_NPAD; i++)
@@ -1623,6 +1630,7 @@ static void render_bells(uint32_t n)
             midi(0x81, v->note, 0);
         }
     }
+    yoga_dsp_gbells(mixl, mixr, rsend, esend, n, g);   /* yoga: the loops on an instrument */
 }
 
 /* a hat: the metal and noise, high-passed (Chamberlin SVF, ~4 to 10 kHz by Hats); no pitch, little echo */

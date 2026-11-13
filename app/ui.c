@@ -238,6 +238,10 @@ static row_t row(int pg, int sub, int k)
     if (sub == 0) {                          /* the overview: the four parts' levels */
         r.label = sub_name(pg, k + 1);
         r.level = LV[pg - 1][k];
+    } else if (pg == PG_GARTEN && sub == 2 && k == 0) {   /* the bells: their instrument first (the level: the
+                                                          * overview) */
+        r.yx = YX_GINST;
+        r.label = yx_label(r.yx);
     } else if (k == 0) {                     /* a part: its level first */
         r.label = T(pg == PG_KLANG && sub == 4 ? S_ANTEIL : S_PEGEL);
         r.level = LV[pg - 1][sub - 1];
