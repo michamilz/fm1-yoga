@@ -1,7 +1,10 @@
 {
-  "what": "A sound companion for Shavasana at the end of a yoga class and for meditation. Guided programs on 174, 396, 432 and 528 Hz drift from theta to delta, isochronic for speakers or binaural for headphones, with breath, singing bowls and an ambient garden, then wake you gently. Play handpan, kalimba or chimes on the keys.",
+  "what": "A sound companion for Shavasana and meditation. Guided programs on 174, 396, 432 and 528 Hz drift from theta to delta, isochronic for speakers or binaural for headphones, with breath, singing bowls and an ambient garden, then wake you gently. Play handpan, kalimba or chimes on the keys.",
+  "author": "Michael Milz",
   "kinds": [
     "other"
   ],
-  "play": "https://michamilz.github.io/fm1-yoga/emu/"
+  "play": "https://michamilz.github.io/fm1-yoga/emu/",
+  "image": "docs/img/hub-240.png",
+  "sounds": "none"
 }
