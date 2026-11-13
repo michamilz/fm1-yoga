@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual · FM1 YOGA</title>
+<meta name="description" content="The manual for FM1 YOGA, a firmware for the M-VAVE FM-1.">
+<style>
+/* paper and ink: warm white paper, ink-blue type, vermilion for what is played, mustard for asides; a shade of the
+   paper for code and callouts (CTL-1's; a firmware may restyle its site) */
+:root {
+  --paper: #fbf8f1; --sheet: #efe9dc; --rule: #ddd4c2; --ink: #1e2b5a; --muted: #5d6585;
+  --hot: #e5482e; --hot-t: #f8d3c9; --cool: #d9a21b; --cool-t: #f5e4b8;
+  --hot-ink: #c23a22;                                 /* the vermilion as text: 4.5:1 on the paper */
+  color-scheme: light;
+}
+body {
+  background: var(--paper); color: var(--ink); margin: 0;
+  font: 400 17px/1.6 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  padding-inline: 16px; padding-block: 32px 64px;
+}
+main { max-width: 46rem; margin: 0 auto; }
+.page > .site { max-width: 46rem; margin-inline: auto; }
+main:focus { outline: none; }
+h1, h2, h3 { font-family: inherit; text-wrap: balance; line-height: 1.2; }
+h1 { font-size: 2.2rem; font-weight: 700; margin: 0 0 .4rem; letter-spacing: .02em; }
+h2 { font-size: 1.3rem; font-weight: 700; margin: 3rem 0 .8rem; padding-top: .8rem; border-top: 2px solid var(--ink); }
+h2 .num { color: var(--hot); margin-right: .5em; font-variant-numeric: tabular-nums; }
+h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 .5rem; }
+p, li { max-width: 65ch; }
+p { margin: 0 0 1rem; }
+ul, ol { padding-left: 1.3rem; margin: 0 0 1rem; }
+li { margin: .2rem 0; }
+li::marker { color: var(--hot); }
+strong { font-weight: 700; }
+a { color: var(--ink); text-decoration-color: var(--hot); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a:hover { background: var(--hot-t); }
+:focus-visible { outline: 3px solid var(--hot-ink); outline-offset: 2px; }
+.skip { position: absolute; left: 16px; top: -100px; background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 0 0 6px 6px; z-index: 1; }
+.skip:focus { top: 0; }
+code, pre { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .86em; }
+code { background: var(--sheet); padding: .08em .35em; border-radius: 3px; }
+pre { background: var(--sheet); border-radius: 6px; padding: 14px 16px; overflow-x: auto; line-height: 1.45; margin: 0 0 1.2rem; }
+pre code { background: none; padding: 0; font-size: inherit; }
+hr { display: none; }
+.table { overflow-x: auto; margin: 0 0 1.3rem; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; vertical-align: top; padding: .45rem .7rem .45rem 0; border-bottom: 1px solid var(--rule); }
+th { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: .78rem; color: var(--muted); border-bottom: 2px solid var(--ink); }
+td:first-child { white-space: nowrap; }
+.lede { margin-bottom: 1.6rem; }
+.status { background: var(--sheet); border-radius: 6px; padding: 12px 16px; }
+.status p { margin: 0; }
+.site { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem 1.2rem; margin: 0 0 1.6rem; padding-bottom: .5rem; border-bottom: 2px solid var(--ink); }
+.site .home { font-size: 1.1rem; font-weight: 700; letter-spacing: .04em; color: var(--ink); text-decoration: none; }
+.site .home:hover { color: var(--hot-ink); background: none; }
+.site nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: .2rem 1rem; font-size: .92rem; }
+.site nav a { color: var(--ink); text-underline-offset: 3px; }
+.site nav a[aria-current] { text-decoration: none; color: var(--hot-ink); }
+a.home { color: inherit; text-decoration: none; }
+a.home:hover { background: none; color: var(--hot-ink); }
+main > a.home { display: inline-block; font-size: .9rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 .4rem; }
+.callout { border-left: 4px solid var(--cool); background: var(--cool-t); padding: 10px 16px; margin: 0 0 1.2rem; max-width: 65ch; border-radius: 0 6px 6px 0; }
+.callout p { margin: 0; }
+details { background: var(--sheet); border-radius: 6px; padding: 0 16px; margin: 0 0 1.2rem; }
+details > summary { cursor: pointer; padding: 10px 0; }
+details[open] > summary { margin-bottom: .4rem; }
+details > :last-child { margin-bottom: 1rem; }
+.swatch { display: inline-block; width: .7em; height: .7em; margin-right: .4em; vertical-align: .02em; }
+nav.contents ol { columns: 2 14rem; column-gap: 2rem; padding-left: 1.3rem; }
+.figs { display: flex; flex-wrap: wrap; gap: 20px; margin: .4rem 0 1.6rem; }
+figure { margin: 0; flex: 0 1 auto; }
+figure img { display: block; max-width: 100%; height: auto; }
+figure.shot img { width: 300px; image-rendering: pixelated; border-radius: 4px; box-shadow: 0 0 0 1px var(--rule); }
+figure.wide { flex-basis: 100%; }
+figure.wide img { width: 100%; }
+figcaption { color: var(--muted); font-size: .88rem; margin-top: .4rem; max-width: 300px; }
+figure.wide figcaption { max-width: none; }
+nav.contents li { break-inside: avoid; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="page">
+<header class="site"><a class="home" href="../">FM1 YOGA</a><nav><a href="../emu/">Emulator</a><a href="../install/">Install</a><a href="../manual/" aria-current="page">Manual</a><a href="https://github.com/michamilz/fm1-yoga">Source</a></nav></header>
+<main id="content" tabindex="-1"><h1>Manual</h1>
+<p class="lede"><strong>English</strong> · <a href="../de/manual/">Deutsch</a></p>
+<p><strong>Sounds for final relaxation and meditation – a firmware for the M-VAVE FM-1</strong></p>
+<p>FM1 YOGA turns the small FM-1 synthesizer into a calm sound companion for savasana, the final relaxation of a yoga class, and for meditation. Choose a program, press PLAY, and the device guides the relaxation: a sustained carrier tone, gentle rhythms, breathing noise, singing bowls and a floating ambient garden. At the end it wakes you gently. On the keys you can play a handpan, kalimba, singing bowls or wind chimes along with it.</p>
+<div class="figs"><figure class="shot"><img src="img/panel.png" alt="The FM-1 with FM1 YOGA: every key and knob labelled" loading="lazy"><figcaption>The FM-1 with FM1 YOGA: every key and knob labelled</figcaption></figure></div>
+<div class="callout"><p>FM1 YOGA makes <strong>relaxation sounds</strong>. It is not a medical treatment and promises no healing effect. If you are prone to seizures, use pulsing sounds (ISO) with care. Installing another firmware is <strong>at your own risk</strong>. M-VAVE's stock firmware can be put back at any time (see <a href="#back-to-the-stock-firmware">Back to the stock firmware</a>). FM1 YOGA is an independent project and is not affiliated with M-VAVE.</p></div>
+<p>The pictures in this README show the screen in German, the device's default language. Switch it to English under <strong>GLO → K3</strong> (see <a href="#language">Language</a>); the words on the screen then match the ones used here.</p>
+<nav class="contents" aria-label="Contents"><h2 id="contents">Contents</h2>
+<ol><li><a href="#what-fm1-yoga-does">What FM1 YOGA does</a></li><li><a href="#try-it-without-a-device">Try it without a device</a></li><li><a href="#install">Install</a></li><li><a href="#quick-start-your-first-final-relaxation">Quick start: your first final relaxation</a></li><li><a href="#for-meditation">For meditation</a></li><li><a href="#the-device-at-a-glance">The device at a glance</a></li><li><a href="#the-screen">The screen</a></li><li><a href="#the-programs">The programs</a></li><li><a href="#iso-or-bin-speakers-or-headphones">ISO or BIN: speakers or headphones</a></li><li><a href="#the-keys-instruments-and-muting">The keys: instruments and muting</a></li><li><a href="#the-sequencer-your-own-patterns">The sequencer: your own patterns</a></li><li><a href="#settings">Settings</a></li><li><a href="#language">Language</a></li><li><a href="#faq">FAQ</a></li><li><a href="#for-developers">For developers</a></li><li><a href="#licence-and-thanks">Licence and thanks</a></li></ol>
+</nav>
+<hr>
+<h2 id="what-fm1-yoga-does">What FM1 YOGA does</h2>
+<p><strong>Two layers of sound, sounding through the same space:</strong></p>
+<ul><li><strong>SOUND</strong>, the yoga layer, on fixed frequencies: - a <strong>carrier</strong> (drone) on <strong>174 Hz</strong> (grounding), <strong>396 Hz</strong> (letting go), <strong>432 Hz</strong> (heart) or <strong>528 Hz</strong> (transformation) - a <strong>brainwave rhythm</strong>: <strong>theta</strong> (4–7 Hz) for arriving, <strong>delta</strong> (0.5–3 Hz) in the depth, <strong>beta</strong> (15–18 Hz) only when waking up - <strong>breathing noise</strong> like surf, swelling and fading with the breath - <strong>singing bowls</strong> at every change of phase and when waking up, with rare, quiet chimes</li><li><strong>GARDEN</strong>, the musical layer (from <a href="https://github.com/charlesvestal/fm1-amb">AMB-1</a>): - four breathing <strong>pads</strong> forming slowly changing chords - <strong>bells</strong> on tape loops of different lengths, or played by one of the keys' instruments - a gliding <strong>bass</strong> - <strong>tape echo</strong>, a long tape loop and a large <strong>plate reverb</strong></li></ul>
+<p>The garden is always tuned to the yoga layer's carrier. With HEART it sits exactly on 432 Hz.</p>
+<p><strong>And:</strong></p>
+<ul><li><strong>6 programs:</strong> EARTH, RELEASE, HEART, TRANSFORM, JOURNEY (all four carriers in turn) and MANUAL</li><li><strong>Duration</strong> 5, 10, 15, 20, 30 minutes or <strong>ENDLESS</strong></li><li><strong>For meditation too:</strong> a calm timer with a gentle end, a fixed rhythm in MANUAL, or ENDLESS</li><li><strong>No two runs sound alike:</strong> every start draws new phase lengths, rhythms, timbres and a new garden.</li><li><strong>Smooth transitions</strong> without dips in loudness, a gentle <strong>wake-up</strong> at the end</li><li><strong>An instrument on the keys</strong>, velocity-sensitive and playable at any time: handpan, kalimba, tongue drum, singing bowls or Koshi wind chimes</li><li><strong>Muting</strong> of every part with the small keys</li><li><strong>Sequencer:</strong> record four patterns of your own, live, in any program</li><li><strong>Language:</strong> Deutsch, English or Sanskrit</li><li>a <strong>silent beat</strong> on the screen and/or the LFO button, as a soundless metronome</li><li>many <strong>fine settings</strong>, most of them on AUTO, and everything can be saved</li></ul>
+<hr>
+<h2 id="try-it-without-a-device">Try it without a device</h2>
+<p>The <strong>emulator</strong> runs exactly the same firmware in the browser, with sound, played with the mouse or the computer keyboard: <strong>https://michamilz.github.io/fm1-yoga/emu/</strong></p>
+<p>Click "Switch on" to start the sound. The emulator has no velocity.</p>
+<hr>
+<h2 id="install">Install</h2>
+<p>You need an <strong>M-VAVE FM-1</strong>, a <strong>USB data cable</strong> (a charging-only cable won't do) and a computer with <strong>Chrome</strong> or <strong>Edge</strong>.</p>
+<p>FM1 YOGA runs on both known versions of the FM-1: with the original flash memory (Puya P25Q80) and with the UC25HQ80 that units have carried since autumn 2026. On these newer units, versions up to 1.0-rc2 save nothing (SAVE fails) and cannot install an update from themselves. Bring such a unit back to the stock firmware with the rescue script (see <a href="#back-to-the-stock-firmware">Back to the stock firmware</a>) and install FM1 YOGA again from there.</p>
+<h3 id="with-the-web-installer-recommended">With the web installer (recommended)</h3>
+<ol><li>Open the installer: <strong>https://michamilz.github.io/fm1-yoga/install/</strong></li><li>Connect the FM-1 to the computer by USB and switch it on.</li><li>Click <strong>Install</strong> and allow MIDI access when the browser asks.</li><li>Do not unplug the cable while it writes. The FM-1 then restarts with FM1 YOGA.</li></ol>
+<h3 id="from-the-command-line">From the command line</h3>
+<p>Download the firmware file (e.g. <code>yoga-1.0.fwsc</code>) from the <a href="https://github.com/michamilz/fm1-yoga/releases">releases page</a> and get the source:</p>
+<pre tabindex="0" role="region" aria-label="Command: From the command line"><code>git clone --recursive https://github.com/michamilz/fm1-yoga</code></pre>
+<p>Install Python 3 and the MIDI packages:</p>
+<pre tabindex="0" role="region" aria-label="Command: From the command line"><code>pip3 install mido python-rtmidi</code></pre>
+<p>Then, in the <code>fm1-yoga</code> folder:</p>
+<pre tabindex="0" role="region" aria-label="Command: From the command line"><code>python3 base/tools/fm1_install.py yoga-1.0.fwsc</code></pre>
+<h3 id="your-data-when-switching-firmware">Your data when switching firmware</h3>
+<p>Every firmware keeps its data in its own way in the same flash memory of the FM-1. <strong>Before switching, back up your projects, sounds and samples</strong> with the backup function of the firmware that is running.</p>
+<ul><li>FM1 YOGA saves only its settings. It uses the storage area where other firmwares based on Felucca or fm1-base (AMB-1, for example) keep their settings or projects. After a switch, what another firmware saved there may be lost.</li><li>In turn, FM1 YOGA reads no other firmware's data. If it finds no settings of its own, it starts with its defaults.</li><li>FM1 YOGA does not read the projects and samples of M-VAVE's stock firmware. If you switch back, restore them from your backup.</li></ul>
+<h3 id="back-to-the-stock-firmware">Back to the stock firmware</h3>
+<p>At the bottom of the web installer is <strong>"Back to the stock firmware"</strong>. Download the <strong>FM-1 V15</strong> file from the link given there, select it and press the button. M-VAVE's own update program (M-UPGRADE) works as well.</p>
+<p>If the FM-1 fails to start properly twice in a row, it starts in <strong>safe mode</strong>. There is no sound then, but the web installer still reaches the device. If the screen stays black and the installer cannot see the device, felucca-bsp's rescue script helps. It runs on a Mac, with the normal USB cable:</p>
+<pre tabindex="0" role="region" aria-label="Command: Back to the stock firmware"><code>bash -c "$(curl -fsSL https://raw.githubusercontent.com/hugelton/felucca-bsp/main/tools/fm1_rescue.sh)"</code></pre>
+<p>The script first backs up the FM-1's memory, asks before it writes, and then puts M-VAVE's stock firmware back.</p>
+<hr>
+<h2 id="quick-start-your-first-final-relaxation">Quick start: your first final relaxation</h2>
+<div class="figs"><figure class="shot"><img src="img/schnellstart.png" alt="The five steps to start, numbered" loading="lazy"><figcaption>The five steps to start, numbered</figcaption></figure></div>
+<ol><li><strong>MASTER</strong>: set the volume. Start quiet; the program fades in gently anyway.</li><li><strong>SELECT</strong>: choose a program, e.g. <strong>JOURNEY</strong> or <strong>HEART</strong>.</li><li><strong>PRESETS</strong>: choose the duration, e.g. <strong>10 MIN</strong>.</li><li><strong>ALGORITHM</strong>: <strong>ISO</strong> for speakers in the class room, <strong>BIN</strong> for headphones.</li><li><strong>PLAY</strong>: start.</li></ol>
+<p>The program fades in over 20–30 seconds. After that, everything runs by itself:</p>
+<ul><li><strong>PLAY</strong> pauses and resumes (with a 2-second fade out and in).</li><li><strong>Holding REC for a second</strong> begins the wake-up at once.</li><li><strong>Holding HOME for two seconds</strong> fades out and stops.</li><li>At the end, <strong>NAMASTE</strong> appears. <strong>PLAY</strong> starts a new run, <strong>SELECT</strong> chooses the next program and makes it ready to start, <strong>HOME</strong> returns to rest.</li></ul>
+<hr>
+<h2 id="for-meditation">For meditation</h2>
+<p>FM1 YOGA accompanies meditation too, alone or in a group.</p>
+<ul><li><strong>As a timer:</strong> choose the duration with PRESETS, 5 to 30 minutes or ENDLESS. At the end, the wake-up brings you back gently with three singing bowls, like the bell at the end of a sitting.</li><li><strong>A fixed rhythm:</strong> in <strong>MANUAL</strong>, K3 sets the brainwave rate, theta (4–7 Hz) for an awake, deep meditation or delta for deep rest, and K4 the carrier.</li><li><strong>Alone with headphones, BIN</strong>; in a group over speakers, ISO.</li><li><strong>Breath:</strong> the ring on the screen and the LED breath on the keys set a calm breathing pace. Set the pace under SOUND → BREATH (3–8 breaths a minute).</li><li><strong>Counting without sound:</strong> the silent beat (GLO → BEAT) lights at a steady tempo, for counting breaths, say.</li><li><strong>Less is more:</strong> small key 6 mutes the GARDEN. The carrier, the breath and the bowls remain.</li></ul>
+<hr>
+<h2 id="the-device-at-a-glance">The device at a glance</h2>
+<div class="table" tabindex="0" role="region" aria-label="Table: The device at a glance (Control, What it does)"><table><thead><tr><th>Control</th><th>What it does</th></tr></thead><tbody><tr><td><strong>MASTER</strong></td><td>overall volume</td></tr><tr><td><strong>SELECT</strong></td><td>choose the program (at rest and after the end); on the settings pages: turn through the sub-pages</td></tr><tr><td><strong>PRESETS</strong></td><td>duration or timer (at rest)</td></tr><tr><td><strong>ALGORITHM</strong></td><td>ISO or BIN, at any time</td></tr><tr><td><strong>K1 / K2</strong> (on the home screen)</td><td>volume of SOUND / GARDEN</td></tr><tr><td><strong>K3 / K4</strong> (on the home screen)</td><td>in MANUAL: brainwave rate / carrier</td></tr><tr><td><strong>K1–K4</strong> (on the settings pages)</td><td>the page's four values</td></tr><tr><td><strong>HOME</strong></td><td>back to the player; hold 2 s: stop</td></tr><tr><td><strong>FX</strong></td><td>the <strong>SOUND</strong> page (the yoga layer)</td></tr><tr><td><strong>ENV</strong></td><td>the <strong>GARDEN</strong> page</td></tr><tr><td><strong>SEL</strong></td><td>the <strong>INSTRUMENT</strong> page (the keys)</td></tr><tr><td><strong>GLO</strong></td><td>the <strong>SETUP</strong> page (LED breath, dimming, language, silent beat)</td></tr><tr><td><strong>PLAY</strong></td><td>start, pause, resume; after the end: a new run</td></tr><tr><td><strong>REC</strong></td><td>hold 1 s: wake up now; on the SEQUENCER page: recording on/off</td></tr><tr><td><strong>SAVE</strong></td><td>save the settings; lit while something has changed</td></tr><tr><td><strong>Long keys</strong></td><td>play the instrument</td></tr><tr><td><strong>Small keys</strong></td><td>mute parts</td></tr><tr><td><strong>LFO</strong></td><td>strikes a singing bowl while a program runs; lights with the beat when the silent beat shows on LFO or BOTH</td></tr><tr><td><strong>SEQ</strong></td><td>the <strong>SEQUENCER</strong> page</td></tr><tr><td><strong>OCT−, OCT+, EDIT, ARP</strong></td><td>patterns 1, 2, 3, 4</td></tr></tbody></table></div>
+<p>Close a settings page with the same button or with <strong>HOME</strong>. The open page's button is lit; <strong>PLAY</strong> is lit green while a program runs.</p>
+<hr>
+<h2 id="the-screen">The screen</h2>
+<div class="figs"><figure class="shot"><img src="img/bildschirm.png" alt="The screen during a program, every element labelled" loading="lazy"><figcaption>The screen during a program, every element labelled</figcaption></figure></div>
+<p>The <strong>ring</strong> in the middle breathes along: it widens as you breathe in and narrows as you breathe out. It makes a calm breathing guide. After 30 seconds without input the screen dims; you can change that under SETUP.</p>
+<div class="table" tabindex="0" role="region" aria-label="Table: The screen (, , )"><table><thead><tr><th></th><th></th><th></th></tr></thead><tbody><tr><td>&lt;img src="img/screen-bereit.png" width="240" alt="Ready: JOURNEY, 10 MIN"&gt;</td><td>&lt;img src="img/screen-laeuft.png" width="240" alt="A program running"&gt;</td><td>&lt;img src="img/screen-uebergang.png" width="240" alt="Transition 174 &gt; 396"&gt;</td></tr><tr><td><strong>Ready</strong>: program and duration</td><td><strong>Running</strong>: phase, rhythm, time left</td><td><strong>Transition</strong> in JOURNEY</td></tr><tr><td>&lt;img src="img/screen-pause.png" width="240" alt="Pause"&gt;</td><td>&lt;img src="img/screen-aufwachen.png" width="240" alt="Awaken"&gt;</td><td>&lt;img src="img/screen-namaste.png" width="240" alt="Namaste"&gt;</td></tr><tr><td><strong>Pause</strong></td><td><strong>Awaken</strong></td><td><strong>End</strong></td></tr></tbody></table></div>
+<hr>
+<h2 id="the-programs">The programs</h2>
+<div class="table" tabindex="0" role="region" aria-label="Table: The programs (Program, Carrier, Course)"><table><thead><tr><th>Program</th><th>Carrier</th><th>Course</th></tr></thead><tbody><tr><td><strong>EARTH</strong></td><td>174 Hz</td><td>arrive (theta) → deepen → rest (delta)</td></tr><tr><td><strong>RELEASE</strong></td><td>396 Hz</td><td>the same course</td></tr><tr><td><strong>HEART</strong></td><td>432 Hz</td><td>the same course</td></tr><tr><td><strong>TRANSFORM</strong></td><td>528 Hz</td><td>the same course</td></tr><tr><td><strong>JOURNEY</strong></td><td>174 → 396 → 432 → 528 Hz</td><td>from theta to delta, with smooth transitions</td></tr><tr><td><strong>MANUAL</strong></td><td>your choice</td><td>set the carrier and the brainwave rate yourself</td></tr></tbody></table></div>
+<p><strong>How a program runs:</strong></p>
+<ol><li><strong>Fade-in</strong> over 20–30 seconds, with a singing bowl.</li><li><strong>The program's phases.</strong> The rhythm sinks slowly from theta into delta.</li><li><strong>Wake-up</strong> over 60–90 seconds: the rhythm rises gently through theta and alpha into beta, the sound brightens, and three singing bowls sound.</li><li><strong>Fade-out</strong> into silence, then <strong>NAMASTE</strong>.</li></ol>
+<p><strong>Transitions in JOURNEY:</strong> two carriers crossfade over 35–55 seconds, without a dip in loudness and without a tone sliding. During the crossfade the screen shows, for example, "174 &gt; 396".</p>
+<p><strong>The change announces itself,</strong> so you can leave room in time while playing:</p>
+<div class="table" tabindex="0" role="region" aria-label="Table: The programs (When, Long keys, Screen)"><table><thead><tr><th>When</th><th>Long keys</th><th>Screen</th></tr></thead><tbody><tr><td>30 seconds before</td><td>pulse calmly, dimmed</td><td>"CHANGE IN 30" counts down, the ring turns sand-coloured</td></tr><tr><td>during the transition</td><td>stay dimmed: better not play</td><td>"174 &gt; 396", the ring stays sand-coloured</td></tr><tr><td>after it</td><td>the LED breath again</td><td>the ring turquoise again</td></tr></tbody></table></div>
+<p>The announcement always appears, even with the LED breath off. A new carrier in MANUAL changes at once, so there is only the second stage.</p>
+<p><strong>ENDLESS</strong> (PRESETS all the way right) works in every program. The course is that of a 20-minute program; after it, the program stays in the resting phase (delta, on 528 Hz in JOURNEY) until you <strong>hold REC for 1 s</strong>. The screen then shows the time passed instead of the time left.</p>
+<h3 id="manual">MANUAL</h3>
+<p>&lt;img src="img/screen-manuell.png" width="240" align="right" alt="MANUAL: 432 Hz, theta 5.0 Hz, 20 MIN"&gt;</p>
+<p>In manual mode you decide:</p>
+<ul><li><strong>K3</strong>: brainwave rate 0.5–7.0 Hz (delta or theta)</li><li><strong>K4</strong>: carrier 174, 396, 432 or 528 Hz</li><li><strong>PRESETS</strong>: timer 5–60 minutes or ENDLESS</li></ul>
+<p>Both can be changed while it runs. A new carrier crossfades smoothly in 10 seconds, and the garden moves into the new key with it. With a timer, the last 60–90 seconds of the set time are the wake-up.</p>
+<p>&lt;br clear="right"&gt;</p>
+<p><strong>No two runs sound alike.</strong> Each start varies at random:</p>
+<ul><li>the length of the phases (±15 %) and the exact brainwave rates within their band</li><li>overtones, beating and breathing pace (they also drift slowly on)</li><li>when singing bowls and chimes sound</li><li>the garden's recipe: key, pad sound (Rhodes or Voices), tempo, density, reverb</li><li>in JOURNEY, sometimes the order of 396 and 432 Hz</li></ul>
+<hr>
+<h2 id="iso-or-bin-speakers-or-headphones">ISO or BIN: speakers or headphones</h2>
+<p>Both make the same brainwave rhythm audible, 5 Hz theta for example, but in different ways:</p>
+<div class="table" tabindex="0" role="region" aria-label="Table: ISO or BIN: speakers or headphones (, ISO (isochronic), BIN (binaural))"><table><thead><tr><th></th><th><strong>ISO</strong> (isochronic)</th><th><strong>BIN</strong> (binaural)</th></tr></thead><tbody><tr><td>How it works</td><td>the carrier's loudness pulses softly with the rhythm</td><td>e.g. 432 Hz on the left, 437 Hz on the right; the brain hears the 5 Hz difference as a beating</td></tr><tr><td>Playback</td><td>speakers or headphones</td><td><strong>headphones only</strong></td></tr><tr><td>For groups</td><td>yes</td><td>no</td></tr><tr><td>Effect</td><td>noticeable, direct</td><td>subtle</td></tr></tbody></table></div>
+<p><strong>Rule of thumb:</strong> in a class with speakers <strong>ISO</strong>, alone with headphones <strong>BIN</strong>. Switch at any time with <strong>ALGORITHM</strong>, even while a program runs. Top right shows ISO (turquoise) or BIN (sand).</p>
+<hr>
+<h2 id="the-keys-instruments-and-muting">The keys: instruments and muting</h2>
+<div class="figs"><figure class="shot"><img src="img/tastatur.png" alt="The keys: long keys play the instrument, small keys mute" loading="lazy"><figcaption>The keys: long keys play the instrument, small keys mute</figcaption></figure></div>
+<h3 id="long-keys-the-instrument">Long keys: the instrument</h3>
+<p>The 16 long keys play an instrument <strong>at any time</strong>: at rest, during a program and after the end. The harder you strike, the louder and brighter it sounds.</p>
+<ul><li><strong>Key 1</strong> is the <strong>ding</strong>, the deep centre note.</li><li><strong>Keys 2–9</strong> are the scale's eight notes.</li><li><strong>Keys 10–15</strong> are the same scale an octave up.</li><li><strong>Key 16</strong> is the handpan's <strong>tak</strong>, the knock on the rim. On the other instruments it plays the scale's next note.</li></ul>
+<div class="table" tabindex="0" role="region" aria-label="Table: Long keys: the instrument (Instrument, Sound)"><table><thead><tr><th>Instrument</th><th>Sound</th></tr></thead><tbody><tr><td><strong>HANDPAN</strong></td><td>warm, shimmering, with the tak on key 16</td></tr><tr><td><strong>KALIMBA</strong></td><td>plucked metal tines, short and bright, an octave up</td></tr><tr><td><strong>TONGUE</strong></td><td>tongue drum: like the handpan, rounder and darker</td></tr><tr><td><strong>BOWLS</strong></td><td>a singing bowl on every key, a soft strike, a long ring</td></tr><tr><td><strong>KOSHI</strong></td><td>wind chimes: every key lets 3–6 rods ring one after another, like a breeze</td></tr></tbody></table></div>
+<p>All instruments are tuned to the yoga carrier, and the scale always fits: nothing can sound "wrong".</p>
+<p>Up to eight notes ring at once. If another comes, the quietest fades out softly. If computing time runs short, the firmware takes voices away for a while (at least four stay) rather than crackle.</p>
+<h3 id="small-keys-muting">Small keys: muting</h3>
+<p>The eleven small keys <strong>mute parts softly and bring them back</strong> (a 1.5-second crossfade). <strong>What sounds is lit</strong>; a muted key is dark.</p>
+<div class="table" tabindex="0" role="region" aria-label="Table: Small keys: muting (Small key, mutes)"><table><thead><tr><th>Small key</th><th>mutes</th></tr></thead><tbody><tr><td><strong>1</strong></td><td>the whole yoga layer (SOUND)</td></tr><tr><td>2 · 3 · 4 · 5</td><td>drone · breath · bowls · space</td></tr><tr><td><strong>6</strong></td><td>the whole GARDEN</td></tr><tr><td>7 · 8 · 9 · 10</td><td>pads · bells · bass · echo</td></tr><tr><td><strong>11</strong></td><td>everything (the instrument stays playable)</td></tr></tbody></table></div>
+<ul><li>The levels you set are kept. Mute is only a switch.</li><li>A group (key 1 or 6) remembers the states of its parts.</li><li>A running program keeps running even when everything is muted. Key 11 is handy for an announcement in class, for example.</li><li>It is not saved: after switching on, everything sounds.</li></ul>
+<hr>
+<h2 id="the-sequencer-your-own-patterns">The sequencer: your own patterns</h2>
+<p>&lt;img src="img/screen-sequenzer.png" width="240" align="right" alt="The SEQUENCER page: tempo, length and the four patterns"&gt;</p>
+<p>You can record four patterns of your own. They run in <strong>every program</strong> and repeat until you choose another. A pattern remembers <strong>what</strong> you played: keys, singing bowls and muting. The pitch comes from the program that is running. In JOURNEY a pattern therefore follows the carrier, and you can change the instrument and the scale afterwards too.</p>
+<p><strong>Patterns 1–4</strong> are on <strong>OCT−, OCT+, EDIT and ARP</strong>. When a pattern plays a note, the long key it plays lights up briefly.</p>
+<p>&lt;br clear="right"&gt;</p>
+<h3 id="recording">Recording</h3>
+<ol><li>Start a program with <strong>PLAY</strong>. Recording works only while one runs.</li><li>Press <strong>SEQ</strong>. K1 sets the tempo, K2 the length.</li><li>Press <strong>REC</strong>. The pattern starts, REC blinks with the beat.</li><li>Play on the long keys. <strong>LFO</strong> strikes a singing bowl, the small keys mute.</li><li>The pattern runs as a loop, so you can add to it round by round.</li><li>Press <strong>REC</strong> to stop recording, and <strong>SAVE</strong> to keep the patterns.</li></ol>
+<p>Everything is rounded to the nearest eighth. A step is an eighth note, so 32 steps last 24 seconds at tempo 40. A pattern holds up to 96 events. When it is full, the screen shows FULL.</p>
+<p>To <strong>clear</strong> a pattern, open the SEQUENCER page and hold its pattern key for 2 seconds. On this page, holding REC does not start the wake-up, by the way. Go back to HOME for that.</p>
+<h3 id="changing-patterns">Changing patterns</h3>
+<p>The change always comes at the end of the current pass, so everything stays in time:</p>
+<div class="table" tabindex="0" role="region" aria-label="Table: Changing patterns (You do, What happens)"><table><thead><tr><th>You do</th><th>What happens</th></tr></thead><tbody><tr><td>press no key</td><td>the current pattern repeats</td></tr><tr><td>press another pattern key</td><td>it blinks and is queued. At the end of the pass it changes, then the key stays lit</td></tr><tr><td>press yet another key while the first blinks</td><td>the new choice replaces the old one</td></tr><tr><td>press the same blinking key again</td><td>the queued change is taken back</td></tr><tr><td>press the lit key</td><td>it blinks, the pattern plays to its end, then there is quiet</td></tr></tbody></table></div>
+<p>At rest, the pattern key chooses what <strong>PLAY</strong> begins with. Press it again to take the choice back; with no choice the program runs as usual without a pattern. While a program runs without a pattern, the key starts it at once.</p>
+<h3 id="muting-in-a-pattern">Muting in a pattern</h3>
+<ul><li>A pattern resets nothing when it starts. It only plays the switches it recorded. A muted part therefore stays muted until a pattern or you switch it on again.</li><li>A small key pressed while not recording takes effect at once. If the pattern has a switch of its own for that part somewhere, it applies on the next pass.</li></ul>
+<h3 id="in-the-wake-up">In the wake-up</h3>
+<p>When the wake-up begins, the pattern fades out in 8 seconds and a recording ends. So everything leads into silence. At the next start the pattern is chosen again.</p>
+<hr>
+<h2 id="settings">Settings</h2>
+<p>All settings pages work the same way:</p>
+<ul><li><strong>K1–K4</strong> change the page's four values.</li><li><strong>SELECT</strong> turns through the sub-pages; the dots at the bottom show where you are.</li><li><strong>SAVE</strong> saves everything.</li></ul>
+<p>Many values start on <strong>AUTO</strong> (a dotted line). Then every start draws the value anew. Turn the knob and your fixed value applies. Turned all the way left, it is on AUTO again. Changes take effect at once, even while a program runs.</p>
+<h3 id="sound-fx-the-yoga-layer">SOUND (FX): the yoga layer</h3>
+<div class="table" tabindex="0" role="region" aria-label="Table: SOUND (FX): the yoga layer (, )"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>&lt;img src="img/screen-klang.png" width="240" alt="SOUND: overview"&gt;</td><td>&lt;img src="img/screen-klang-drone.png" width="240" alt="SOUND: DRONE"&gt;</td></tr><tr><td>Overview: the four levels</td><td>Sub-page DRONE</td></tr></tbody></table></div>
+<div class="table" tabindex="0" role="region" aria-label="Table: SOUND (FX): the yoga layer (Sub-page, K1, K2, K3, K4)"><table><thead><tr><th>Sub-page</th><th>K1</th><th>K2</th><th>K3</th><th>K4</th></tr></thead><tbody><tr><td>Overview</td><td>drone</td><td>breath</td><td>bowls</td><td>space</td></tr><tr><td>DRONE</td><td>level</td><td>overtones (AUTO, 0–10)</td><td>beating (AUTO, 0–10)</td><td>pulse depth in ISO (AUTO, 0–10)</td></tr><tr><td>BREATH</td><td>level</td><td>rate (AUTO, 3–8 breaths/min)</td><td>colour of the surf (dark – bright)</td><td>swell: how much the drone breathes along</td></tr><tr><td>BOWLS</td><td>level</td><td>chimes (AUTO, 0 = off – 10 = often)</td><td>register (low, middle, high)</td><td>ring (short – long)</td></tr><tr><td>SPACE</td><td>reverb amount</td><td>reverb size (AUTO, 0–10)</td><td>echo amount</td><td>–</td></tr></tbody></table></div>
+<h3 id="garden-env-the-musical-layer">GARDEN (ENV): the musical layer</h3>
+<div class="table" tabindex="0" role="region" aria-label="Table: GARDEN (ENV): the musical layer (, )"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>&lt;img src="img/screen-garten.png" width="240" alt="GARDEN: overview"&gt;</td><td>&lt;img src="img/screen-garten-pads.png" width="240" alt="GARDEN: PADS"&gt;</td></tr><tr><td>Overview: the four levels</td><td>Sub-page PADS</td></tr></tbody></table></div>
+<div class="table" tabindex="0" role="region" aria-label="Table: GARDEN (ENV): the musical layer (Sub-page, K1, K2, K3, K4)"><table><thead><tr><th>Sub-page</th><th>K1</th><th>K2</th><th>K3</th><th>K4</th></tr></thead><tbody><tr><td>Overview</td><td>pads</td><td>bells</td><td>bass</td><td>echo</td></tr><tr><td>PADS</td><td>level</td><td>colour (AUTO, Rhodes, Voices)</td><td>brightness (AUTO, 0–10)</td><td>chord changes (AUTO, 0 = rare – 10 = often)</td></tr><tr><td>BELLS</td><td>instrument (bells, handpan, kalimba, tongue, bowls, Koshi)</td><td>density (AUTO, 0–10)</td><td>tone (AUTO, soft – bright)</td><td>octave (AUTO, −2 to +2)</td></tr><tr><td>BASS</td><td>level</td><td>octave (AUTO, −1 to +1)</td><td>glide (AUTO, 0–10)</td><td>fifth (AUTO, 0–10)</td></tr><tr><td>ECHO</td><td>level</td><td>echo time (AUTO, 1/4. to 4 bars)</td><td>the garden's reverb (AUTO, 0–10)</td><td>motion (AUTO, 0–10)</td></tr></tbody></table></div>
+<p>Instead of the bells, the bell loops can play one of the keys' instruments: handpan, kalimba, tongue drum, singing bowls or Koshi. Choose it with K1 on the BELLS sub-page; the bells' level is therefore not there but on the overview (K2). The loops have voices of their own for it and take no notes away from you while you play the keys. The keys' instrument, scale and ring (SEL) do not apply to the loops: they play the garden's notes, and TONE makes the instrument brighter or softer.</p>
+<h3 id="instrument-sel-the-keys">INSTRUMENT (SEL): the keys</h3>
+<div class="table" tabindex="0" role="region" aria-label="Table: INSTRUMENT (SEL): the keys (, , )"><table><thead><tr><th></th><th></th><th></th></tr></thead><tbody><tr><td>&lt;img src="img/screen-instrument-spiel.png" width="240" alt="Instrument: PLAY"&gt;</td><td>&lt;img src="img/screen-instrument-klang.png" width="240" alt="Instrument: TONE"&gt;</td><td>&lt;img src="img/screen-instrument-raum.png" width="240" alt="Instrument: SPACE"&gt;</td></tr><tr><td>PLAY</td><td>TONE</td><td>SPACE</td></tr></tbody></table></div>
+<div class="table" tabindex="0" role="region" aria-label="Table: INSTRUMENT (SEL): the keys (Sub-page, K1, K2, K3, K4)"><table><thead><tr><th>Sub-page</th><th>K1</th><th>K2</th><th>K3</th><th>K4</th></tr></thead><tbody><tr><td>PLAY</td><td>instrument</td><td>level</td><td>scale</td><td>ding (AUTO = follows the carrier, or fixed 174/396/432/528)</td></tr><tr><td>TONE</td><td>ring</td><td>brightness</td><td>dynamics (0 = every strike alike)</td><td>–</td></tr><tr><td>SPACE</td><td>reverb</td><td>echo</td><td>–</td><td>–</td></tr></tbody></table></div>
+<p><strong>Scales:</strong> KURD (minor, the classic), CELTIC (minor), INTEGRAL, PYGMY, HIJAZ (oriental), SABYE (major, bright), AKEBONO (Japanese, very calm). With the ding on AUTO it sits on 174, 198, 216 or 264 Hz, depending on the carrier.</p>
+<h3 id="setup-glo">SETUP (GLO)</h3>
+<p>&lt;img src="img/screen-setup.png" width="240" align="right" alt="SETUP: LED breath, dimming, language"&gt;</p>
+<p>Two sub-pages, SELECT turns between them:</p>
+<div class="table" tabindex="0" role="region" aria-label="Table: SETUP (GLO) (SYSTEM, )"><table><thead><tr><th>SYSTEM</th><th></th></tr></thead><tbody><tr><td><strong>K1 LED breath</strong></td><td>on: a soft light moves right across the long keys as you breathe in, and back as you breathe out</td></tr><tr><td><strong>K2 Dim</strong></td><td>the screen dims after 30 s or 2 min without input, or never</td></tr><tr><td><strong>K3 Language</strong></td><td>Deutsch, English, Sanskrit</td></tr><tr><td><strong>Bottom: CPU, XRUN, OVER</strong></td><td>the load of the sound computation. XRUN counts blocks that finished too late (should stay 0), OVER how often the emergency brake took a voice</td></tr></tbody></table></div>
+<div class="table" tabindex="0" role="region" aria-label="Table: SETUP (GLO) (BEAT, )"><table><thead><tr><th>BEAT</th><th></th></tr></thead><tbody><tr><td><strong>K1 Tempo</strong></td><td>a silent, steady beat for you as the teacher: OFF or 20–120 a minute</td></tr><tr><td><strong>K2 Show on</strong></td><td>SCREEN (a dot at the top of the screen lights on every beat), LFO (the LFO button lights) or BOTH</td></tr></tbody></table></div>
+<p>&lt;br clear="right"&gt;</p>
+<p>The beat cannot be heard and is tied neither to the breath nor to the program. It runs at rest too, for counting breaths or the seconds in a pose, say.</p>
+<h3 id="saving">Saving</h3>
+<p><strong>SAVE</strong> keeps all settings: program, duration, ISO/BIN, all levels and fine settings, instrument, SETUP, language and the silent beat. SAVE is lit while there are unsaved changes. The small keys' mutes are not saved. SAVE also keeps the sequencer's patterns. They are stored apart from the settings, so resetting the settings leaves them alone.</p>
+<hr>
+<h2 id="language">Language</h2>
+<p>Under <strong>GLO → K3</strong> you set the screen's language: <strong>Deutsch</strong> (the default), <strong>English</strong> or <strong>Sanskrit</strong>. <strong>SAVE</strong> keeps the choice.</p>
+<p>Sanskrit is shown in Latin transliteration without accents, because the screen knows only Latin letters. Yogic terms are in Sanskrit, technical ones such as reverb, echo or level in English:</p>
+<div class="table" tabindex="0" role="region" aria-label="Table: Language (Deutsch, English, Sanskrit, Meaning)"><table><thead><tr><th>Deutsch</th><th>English</th><th>Sanskrit</th><th>Meaning</th></tr></thead><tbody><tr><td>ERDEN</td><td>EARTH</td><td>PRITHVI</td><td>earth</td></tr><tr><td>LOSLASSEN</td><td>RELEASE</td><td>VAIRAGYA</td><td>detachment</td></tr><tr><td>HERZ</td><td>HEART</td><td>ANAHATA</td><td>heart chakra</td></tr><tr><td>WANDLUNG</td><td>TRANSFORM</td><td>PARINAMA</td><td>transformation</td></tr><tr><td>REISE</td><td>JOURNEY</td><td>YATRA</td><td>journey</td></tr><tr><td>MANUELL</td><td>MANUAL</td><td>SVATANTRA</td><td>self-determined</td></tr><tr><td>BEREIT · PAUSE</td><td>READY · PAUSE</td><td>SAJJA · VIRAMA</td><td>ready · pausing</td></tr><tr><td>ANKOMMEN · VERTIEFEN · RUHEN · AUFWACHEN</td><td>ARRIVE · DEEPEN · REST · AWAKEN</td><td>AGAMANA · DHYANA · VISHRAMA · PRABODHA</td><td>arrival · meditation · rest · awakening</td></tr><tr><td>KLANG · GARTEN</td><td>SOUND · GARDEN</td><td>NADA · UDYANA</td><td>sound · garden</td></tr><tr><td>DRONE · ATEM · SCHALEN · RAUM</td><td>DRONE · BREATH · BOWLS · SPACE</td><td>SHRUTI · PRANA · PATRA · AKASHA</td><td>drone · breath · bowl · space/ether</td></tr><tr><td>GLOCKEN · ECHO · ALLES</td><td>BELLS · ECHO · ALL</td><td>GHANTA · PRATIDHVANI · SARVA</td><td>bell · echo · all</td></tr><tr><td>STUMM · ENDLOS</td><td>MUTE · ENDLESS</td><td>MAUNA · ANANTA</td><td>silence · endless</td></tr></tbody></table></div>
+<hr>
+<h2 id="faq">FAQ</h2>
+<p><strong>I hear nothing.</strong> Is MASTER turned up far enough? Is a small key dark, that is, muted? The rightmost key (11) mutes everything. The volumes of SOUND and GARDEN are shown at the bottom of the home screen (K1, K2).</p>
+<p><strong>With BIN I hear no beating.</strong> Binaural beats only work with headphones, because each ear must get a tone of its own. Over speakers, use <strong>ISO</strong>.</p>
+<p><strong>It sounds different at every start. Is that right?</strong> Yes, on purpose. If you want something fixed, turn its value from AUTO to a number and save with SAVE.</p>
+<p><strong>The keys play no sound.</strong> Check the level on the INSTRUMENT page (SEL). The small keys play no notes; they mute.</p>
+<p><strong>My settings are gone after switching off.</strong> Press <strong>SAVE</strong> before switching off. SAVE is lit while something is not yet saved.</p>
+<p><strong>My pattern is gone after switching off.</strong> Patterns are kept only with <strong>SAVE</strong>. After a recording, SAVE is lit until you have saved.</p>
+<p><strong>The screen is so dark.</strong> It dims after 30 seconds without input. Any key makes it bright again. You can turn that off under SETUP → K2.</p>
+<p><strong>Can I play music from the computer through the FM-1?</strong> Yes. Over USB the FM-1 appears as an audio device; the music is mixed into the firmware's sound and follows MASTER. The FM-1's sound can be recorded over USB too.</p>
+<hr>
+<h2 id="for-developers">For developers</h2>
+<h3 id="layout">Layout</h3>
+<div class="table" tabindex="0" role="region" aria-label="Table: Layout (Path, Contents)"><table><thead><tr><th>Path</th><th>Contents</th></tr></thead><tbody><tr><td><code>app/dsp/yoga_dsp.c</code></td><td>the yoga layer and the instruments (float, no libm, no 64-bit multiplies)</td></tr><tr><td><code>app/dsp/amb.c</code>, <code>amb.h</code></td><td>AMB-1's engine (MPL-2.0); changes are marked "yoga:"</td></tr><tr><td><code>app/yoga_program.c</code></td><td>programs, timing, transitions, randomness, muting, instruments</td></tr><tr><td><code>app/yoga_seq.c</code></td><td>the sequencer</td></tr><tr><td><code>app/ui.c</code>, <code>app/lang.c</code></td><td>screen, controls, LEDs; the three languages</td></tr><tr><td><code>app/app.c</code>, <code>app.h</code>, <code>fm1.toml</code></td><td>the link to fm1-base and the saved settings</td></tr><tr><td><code>app/site/</code></td><td>the website's front page, in English (<code>landing.md</code>) and German (<code>landing-de.md</code>)</td></tr><tr><td><code>base/</code></td><td><a href="https://github.com/charlesvestal/fm1-base">fm1-base</a> with felucca-bsp (a Git submodule)</td></tr><tr><td><code>tests/</code></td><td>sound tests (<code>yoga_test.c</code>) and scripts for the host simulator</td></tr><tr><td><code>tools/</code></td><td>this README's pictures, the website, the emulator server, the Podman shim</td></tr><tr><td><code>img/</code></td><td>this README's pictures (made by <code>tools/gen_docs_figures.py</code>)</td></tr><tr><td><code>fmhub.json</code>, <code>firmware.json</code>, <code>.github/workflows/release.yml</code></td><td>the card on The Firmware Hub and the firmware's description; signed releases from the source</td></tr></tbody></table></div>
+<h3 id="requirements-macos">Requirements (macOS)</h3>
+<ul><li><strong>Podman</strong> (or Docker). The toolchain runs in a linux/amd64 container. <code>build.sh</code> passes fm1-base's Docker calls to Podman through <code>tools/podman-bin/docker</code>. The Podman VM must be running (<code>podman machine start</code>).</li><li>the <strong>JieLi Linux toolchain</strong> in <code>~/.jieli/toolchain</code>: <code>base/tools/get_toolchain.sh</code></li><li>three files of the <strong>JieLi AC79 SDK</strong> (Apache-2.0) in <code>~/fw-AC79_AIoT_SDK</code>. A sparse checkout is enough:</li></ul>
+<p>``<code>bash git clone --depth 1 --filter=blob:none --sparse --branch AC79NN_SDK_V1.2.1_2023-12-13 https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK.git ~/fw-AC79_AIoT_SDK </code>``</p>
+<p>``<code>bash git -C ~/fw-AC79_AIoT_SDK sparse-checkout set --no-cone /cpu/wl82/tools/uboot.boot /cpu/wl82/tools/cfg_tool.bin /cpu/wl82/tools/cfg/eq_cfg_hw.bin </code>``</p>
+<ul><li><strong>Python 3</strong> with Pillow: <code>pip3 install Pillow</code></li><li>for the browser emulator, <strong>Emscripten</strong> (e.g. through <a href="https://github.com/emscripten-core/emsdk">emsdk</a>)</li></ul>
+<h3 id="build-and-test">Build and test</h3>
+<p>Build the firmware (result: <code>app/build/yoga.fwsc</code>):</p>
+<pre tabindex="0" role="region" aria-label="Command: Build and test"><code>./build.sh</code></pre>
+<p>All tests: sound, programs, transitions, instruments and the whole app in the host simulator, with screenshots and audio in <code>app/build/scenarios/</code>:</p>
+<pre tabindex="0" role="region" aria-label="Command: Build and test"><code>tests/run_tests.sh</code></pre>
+<p>A program as a WAV to listen to (program, minutes, iso or bin, optionally a seed):</p>
+<pre tabindex="0" role="region" aria-label="Command: Build and test"><code>build/yoga_test wav build/reise.wav reise 10 iso</code></pre>
+<p>Build the browser emulator:</p>
+<pre tabindex="0" role="region" aria-label="Command: Build and test"><code>source ~/emsdk/emsdk_env.sh &amp;&amp; ./build.sh --web</code></pre>
+<p>Start the emulator (<code>http://localhost:8792</code>):</p>
+<pre tabindex="0" role="region" aria-label="Command: Build and test"><code>python3 tools/serve-emu.py</code></pre>
+<p>Redraw this README's pictures (from the host simulator, after <code>./build.sh --host</code>):</p>
+<pre tabindex="0" role="region" aria-label="Command: Build and test"><code>python3 tools/gen_docs_figures.py</code></pre>
+<h3 id="publishing">Publishing</h3>
+<ol><li><strong>Release:</strong> a version tag is enough. GitHub then builds the firmware from the source with <a href="https://thefirmwarehub.com">The Firmware Hub</a>'s shared workflow (<code>.github/workflows/release.yml</code>), runs the tests, signs the package ("Built from source on GitHub") and attaches <code>yoga-1.0.fwsc</code> to the release:</li></ol>
+<p>``<code>bash git tag v1.0 &amp;&amp; git push origin v1.0 </code>``</p>
+<ol><li><strong>Website</strong> with web installer, emulator and download, on GitHub Pages (the <code>gh-pages</code> branch). It is made from the signed package of the release, so the installer offers exactly that file. <code>tools/site.sh</code> downloads it, checks it against the release's <code>SHA256SUMS</code> and writes the site, in English and German, to <code>app/build/site</code>:</li></ol>
+<p>``<code>bash tools/site.sh 1.0 </code>``</p>
+<p>Then commit the folder's contents to the <code>gh-pages</code> branch and push it. In the repository's settings, <strong>Pages</strong> must have the <code>gh-pages</code> branch as its source.</p>
+<ol><li><strong>The Firmware Hub:</strong> the card's description is in <code>fmhub.json</code> and <code>firmware.json</code> (made by the build from <code>app/fm1.toml</code>), the picture in <code>img/hub-240.png</code>. A release's identity is <code>FM-1_432</code> followed by the version (1.0: <code>FM-1_432010000</code>). Over USB the device reports as the MIDI device "YOGA FM-1".</li></ol>
+<hr>
+<h2 id="licence-and-thanks">Licence and thanks</h2>
+<p>FM1 YOGA is free software under the <strong>Mozilla Public License 2.0</strong> (<code>LICENSE</code>).</p>
+<ul><li>The garden's sound engine (pads, bell loops, bass, tape echo, plate reverb) comes from <a href="https://github.com/charlesvestal/fm1-amb">AMB-1</a> by <strong>Charles Vestal</strong> (MPL-2.0). The plate reverb follows Jon Dattorro, "Effect Design, Part 1" (JAES 1997).</li><li>The platform <a href="https://github.com/charlesvestal/fm1-base">fm1-base</a> by Charles Vestal and <a href="https://github.com/hugelton/felucca-bsp">felucca-bsp</a> go back to <a href="https://github.com/hugelton/Felucca">Felucca</a> by <strong>Leo Kuroshita</strong> (Hügelton Instruments) (MPL-2.0).</li><li>Fonts: Barlow (The Barlow Project Authors) and Terminus (Dimitar Toshkov Zhekov), SIL OFL 1.1 (<code>base/assets/fonts/</code>).</li><li>Three files of the JieLi AC79 SDK (Apache-2.0) are read from the SDK at build time and put into the package; they are not part of this repository.</li></ul>
+<p>"M-VAVE" and "FM-1" are trademarks of their owners and are named here only to say which device FM1 YOGA runs on. FM1 YOGA is not affiliated with M-VAVE, Hügelton Instruments or the authors of AMB-1, and is neither endorsed nor checked by them.</p>
+</main>
+</div>
+</body>
+</html>
