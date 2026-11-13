@@ -2,12 +2,12 @@
 
 **English** · [Deutsch](README-de.md)
 
-**Sounds for final relaxation and meditation – a firmware for the M-VAVE FM-1**
+**Sounds for Shavasana and meditation – a firmware for the M-VAVE FM-1**
 
-FM1 YOGA turns the small FM-1 synthesizer into a calm sound companion for savasana, the final relaxation of a yoga
-class, and for meditation. Choose a program, press PLAY, and the device guides the relaxation: a sustained carrier
-tone, gentle rhythms, breathing noise, singing bowls and a floating ambient garden. At the end it wakes you gently.
-On the keys you can play a handpan, kalimba, singing bowls or wind chimes along with it.
+FM1 YOGA turns the small FM-1 synthesizer into a calm sound companion for Shavasana at the end of a yoga class, and
+for meditation. Choose a program, press PLAY, and the device guides the relaxation: a sustained carrier tone, gentle
+rhythms, breathing noise, singing bowls and a floating ambient garden. At the end it wakes you gently. On the keys you
+can play a handpan, kalimba, singing bowls or wind chimes along with it.
 
 ![The FM-1 with FM1 YOGA: every key and knob labelled](docs/img/panel.png)
 
@@ -26,7 +26,7 @@ The pictures in this README show the screen in German, the device's default lang
 1. [What FM1 YOGA does](#what-fm1-yoga-does)
 2. [Try it without a device](#try-it-without-a-device)
 3. [Install](#install)
-4. [Quick start: your first final relaxation](#quick-start-your-first-final-relaxation)
+4. [Quick start: your first Shavasana](#quick-start-your-first-Shavasana)
 5. [For meditation](#for-meditation)
 6. [The device at a glance](#the-device-at-a-glance)
 7. [The screen](#the-screen)
@@ -154,7 +154,7 @@ The script first backs up the FM-1's memory, asks before it writes, and then put
 
 ---
 
-## Quick start: your first final relaxation
+## Quick start: your first Shavasana
 
 ![The five steps to start, numbered](docs/img/schnellstart.png)
 

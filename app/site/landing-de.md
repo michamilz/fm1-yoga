@@ -2,10 +2,10 @@
 
 [English](../) · **Deutsch**
 
-Klänge für Endentspannung und Meditation: eine Firmware für den M-VAVE FM-1. Geführte Programme auf 174, 396, 432
+Klänge für Shavasana und Meditation: eine Firmware für den M-VAVE FM-1. Geführte Programme auf 174, 396, 432
 und 528 Hz mit einem sanften Rhythmus von Theta nach Delta (ISO für Lautsprecher, BIN für Kopfhörer), Atem-Rauschen,
 Klangschalen, ein schwebender Ambient-Garten und ein Instrument auf den Tasten: Handpan, Kalimba, Zungentrommel,
-Klangschalen oder Koshi. Für Savasana im Yogakurs oder als ruhiger Begleiter und Timer für die Meditation.
+Klangschalen oder Koshi. Für Shavasana im Yogakurs oder als ruhiger Begleiter und Timer für die Meditation.
 
 ![FM1 YOGA auf dem FM-1](../img/panel.png "FM1 YOGA")
 

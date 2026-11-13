@@ -11,7 +11,7 @@ cd "$(dirname "$0")/.."
 V="${1:?usage: tools/site.sh VERSION}"
 REL="https://github.com/michamilz/fm1-yoga/releases/download/v$V"
 PKG="yoga-$V.fwsc"
-TAGLINE_DE="Klänge für Endentspannung und Meditation"
+TAGLINE_DE="Klänge für Shavasana und Meditation"
 export JIELI_TOOLCHAIN="${JIELI_TOOLCHAIN:-$HOME/.jieli/toolchain}"
 export AC79_SDK="${AC79_SDK:-$HOME/fw-AC79_AIoT_SDK}"
 command -v emcc >/dev/null 2>&1 || . "$HOME/emsdk/emsdk_env.sh" >/dev/null 2>&1

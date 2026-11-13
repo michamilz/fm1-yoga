@@ -2,10 +2,10 @@
 
 **English** · [Deutsch](de/)
 
-Sounds for final relaxation and meditation: a firmware for the M-VAVE FM-1. Guided programs on 174, 396, 432 and
+Sounds for Shavasana and meditation: a firmware for the M-VAVE FM-1. Guided programs on 174, 396, 432 and
 528 Hz with a gentle rhythm from theta to delta (ISO for speakers, BIN for headphones), breathing noise, singing
 bowls, a floating ambient garden and an instrument on the keys: handpan, kalimba, tongue drum, singing bowls or
-Koshi chimes. For savasana in a yoga class, or as a calm companion and timer for meditation.
+Koshi chimes. For Shavasana in a yoga class, or as a calm companion and timer for meditation.
 
 ![FM1 YOGA on the FM-1](img/panel.png "FM1 YOGA")
 

@@ -2,12 +2,12 @@
 
 [English](README.md) · **Deutsch**
 
-**Klänge für Endentspannung und Meditation – eine Firmware für den M-VAVE FM-1**
+**Klänge für Shavasana und Meditation – eine Firmware für den M-VAVE FM-1**
 
-FM1 YOGA verwandelt den kleinen Synthesizer FM-1 in einen ruhigen Klangbegleiter für Savasana, die Endentspannung
-und die Meditation. Du wählst ein Programm, drückst PLAY, und das Gerät führt durch die Entspannung: mit einem tragenden
-Grundton, sanften Rhythmen, Atem-Rauschen, Klangschalen und einem schwebenden Ambient-Garten. Am Ende weckt es
-behutsam wieder auf. Auf der Tastatur spielst du dazu eine Handpan, Kalimba, Klangschalen oder ein Windspiel.
+FM1 YOGA verwandelt den kleinen Synthesizer FM-1 in einen ruhigen Klangbegleiter für Shavasana und die Meditation.
+Du wählst ein Programm, drückst PLAY, und das Gerät führt durch die Entspannung: mit einem tragenden Grundton,
+sanften Rhythmen, Atem-Rauschen, Klangschalen und einem schwebenden Ambient-Garten. Am Ende weckt es behutsam wieder
+auf. Auf der Tastatur spielst du dazu eine Handpan, Kalimba, Klangschalen oder ein Windspiel.
 
 ![Das FM-1 mit FM1 YOGA: jede Taste und jeder Regler beschriftet](docs/img/panel.png)
 
@@ -23,7 +23,7 @@ behutsam wieder auf. Auf der Tastatur spielst du dazu eine Handpan, Kalimba, Kla
 1. [Was FM1 YOGA kann](#was-fm1-yoga-kann)
 2. [Ausprobieren ohne Gerät](#ausprobieren-ohne-gerät)
 3. [Installieren](#installieren)
-4. [Schnellstart: die erste Endentspannung](#schnellstart-die-erste-endentspannung)
+4. [Schnellstart: das erste Shavasana](#schnellstart-das-erste-shavasana)
 5. [Für die Meditation](#für-die-meditation)
 6. [Das Gerät im Überblick](#das-gerät-im-überblick)
 7. [Der Bildschirm](#der-bildschirm)
@@ -155,7 +155,7 @@ von M-VAVE auf.
 
 ---
 
-## Schnellstart: die erste Endentspannung
+## Schnellstart: das erste Shavasana
 
 ![Die fünf Schritte zum Start, nummeriert](docs/img/schnellstart.png)
 
