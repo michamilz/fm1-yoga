@@ -10,13 +10,13 @@ words = "words.tsv"
 include = ["dsp"]
 o2 = ["dsp/amb.c"]             # the engine (AMB-1's garden with the yoga layer inside), at -O2
 # the site
-tagline = "Klänge für die Endentspannung"
+tagline = "Sounds for final relaxation and meditation"
 repo = "https://github.com/michamilz/fm1-yoga"
 licence = "MPL-2.0"
 credits = "Built on AMB-1 by Charles Vestal and fm1-base and felucca-bsp, from Felucca by Leo Kuroshita (Huegelton Instruments)."
 # firmware.json (base/docs/FIRMWARE-JSON.md): what the hubs show
 author = "Michael Milz"
-description = "A sound companion for the final relaxation of a yoga class. Guided programs on 174, 396, 432 and 528 Hz drift from theta to delta, isochronic for speakers or binaural for headphones, with breath, singing bowls and an ambient garden, then wake you gently. Play handpan, kalimba or chimes on the keys, or loop them with the sequencer."
+description = "A sound companion for the final relaxation of a yoga class and for meditation. Guided programs on 174, 396, 432 and 528 Hz drift from theta to delta, isochronic for speakers or binaural for headphones, with breath, singing bowls and an ambient garden, then wake you gently. Play handpan, kalimba or chimes on the keys, or loop them with the sequencer."
 tags = ["ambient", "generative", "sequencer"]
 install = "https://michamilz.github.io/fm1-yoga/install/"
 site = "https://michamilz.github.io/fm1-yoga/"
