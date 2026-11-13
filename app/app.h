@@ -9,7 +9,7 @@
 
 #define APP_NAME "YOGA"
 #define APP_SPLASH_RGB RGB(96, 196, 200)
-#define APP_TAGLINE "ENDENTSPANNUNG"
+#define APP_TAGLINE "SHAVASANA"
 #define APP_BLOCK 256u                   /* frames per audio block: 5.8 ms at 44.1 kHz */
 #define APP_TOUCH                        /* the keys' velocity: the handpan (lib/touch.h) */
 /* the USB recording: a whole half more in hand. The renders (the garden, the yoga layer and an instrument) can take
