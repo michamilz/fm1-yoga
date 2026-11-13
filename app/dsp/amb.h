@@ -30,6 +30,10 @@
 #pragma once
 #include <stdint.h>
 
+#ifdef PLAT_HOST
+extern float en_wet_gain, en_lim_gain;      /* yoga: the drone's sends held (1: not), the limiter (1: open) */
+#endif
+
 #define EN_SR 44100.0f
 #define EN_NLOOP 4                     /* bell tape loops */
 #define EN_LOOP_MAX 29

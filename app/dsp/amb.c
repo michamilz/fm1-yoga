@@ -1278,6 +1278,7 @@ static void notes_off(void)
     en_midi_out(0xB9, 123, 0);
 }
 
+static void space_reset(void);                 /* yoga: the space's hold and the limiter, at rest */
 static void quiet(void)
 {
     int i;
@@ -1290,11 +1291,13 @@ static void quiet(void)
         pad[i].amp = 0.0f;
     bass.amp = 0.0f;
     notes_off();
+    space_reset();
 }
 
 void en_init(void)
 {
     int i;
+    space_reset();
     for (i = 0; i <= SN; i++)
         sint[i] = fm_sinf((float)i * (FM_TWO_PI / (float)SN));
     plate_init();
@@ -1700,6 +1703,20 @@ static void render_drums(uint32_t n)
     render_hat(&drum[2], n, g * 0.14f, 1.0f, 0.7f);   /* open: a little left */
 }
 
+#define WET_RMS 0.30f                            /* yoga: the space's return, above this the drone's send is held */
+#define LIM_AT 0.80f                             /* yoga: the mix's limit before the soft clip (tanh 0.80: 0.66) */
+#define LIM_ATTACK 0.03f                         /* about 1 ms down */
+#define LIM_RELEASE (1.0f / (0.4f * EN_SR))      /* about 0.4 s back */
+static float wet_ms, lim_g = 1.0f;
+#ifdef PLAT_HOST
+float en_wet_gain = 1.0f, en_lim_gain = 1.0f;    /* the two, for the tests */
+#endif
+static void space_reset(void)
+{
+    wet_ms = 0.0f;
+    lim_g = 1.0f;
+    yoga_dsp_hold(1.0f);
+}
 static void render_chunk(int32_t *out, uint32_t n, float gain)
 {
     uint32_t j;
@@ -1720,14 +1737,37 @@ static void render_chunk(int32_t *out, uint32_t n, float gain)
         }
         yoga_dsp_layer(mixl, mixr, rsend, esend, n);
     }
-    for (j = 0; j < n; j++) {
-        float wl, wr, l, r, el, er, xl, xr;
-        echoes(esend[j] * eg, &el, &er, &xl, &xr);
-        reverb((rsend[j] * rg + (el + er + xl + xr) * 0.35f * rev_send) * 0.8f, &wl, &wr);
-        l = (mixl[j] + 0.75f * el + 0.3f * xl + 1.3f * wl) * 0.36f * gain;
-        r = (mixr[j] + 0.75f * er + 0.3f * xr + 1.3f * wr) * 0.36f * gain;
-        out[2 * j] = (int32_t)(fm_tanhf(l) * 8300000.0f);
-        out[2 * j + 1] = (int32_t)(fm_tanhf(r) * 8300000.0f);
+    if (n) {
+        /* yoga: the space held and the mix limited. A steady tone (the drone) builds up in the plate's and the
+         * echo's feedback, by its pitch and the hall's size up to six times its own level: above WET_RMS (the
+         * return's power over ~0.8 s; a bell's tail stays below it) the drone's and the surf's sends are held
+         * (yoga_dsp_hold), the garden's, the bells' and the keys' not. What still goes over LIM_AT before the soft
+         * clip (the layers together, MASTER up) a limiter takes down, so the clip never snarls */
+        float wsum = 0.0f, hold;
+        for (j = 0; j < n; j++) {
+            float wl, wr, l, r, el, er, xl, xr, sl, sr, pk;
+            echoes(esend[j] * eg, &el, &er, &xl, &xr);
+            reverb((rsend[j] * rg + (el + er + xl + xr) * 0.35f * rev_send) * 0.8f, &wl, &wr);
+            sl = 0.75f * el + 0.3f * xl + 1.3f * wl;
+            sr = 0.75f * er + 0.3f * xr + 1.3f * wr;
+            wsum += sl * sl + sr * sr;
+            l = (mixl[j] + sl) * 0.36f * gain;
+            r = (mixr[j] + sr) * 0.36f * gain;
+            pk = fm_maxf(fm_fabsf(l), fm_fabsf(r)) * lim_g;
+            if (pk > LIM_AT)
+                lim_g += (lim_g * LIM_AT / pk - lim_g) * LIM_ATTACK;
+            else
+                lim_g += (1.0f - lim_g) * LIM_RELEASE;
+            out[2 * j] = (int32_t)(fm_tanhf(l * lim_g) * 8300000.0f);
+            out[2 * j + 1] = (int32_t)(fm_tanhf(r * lim_g) * 8300000.0f);
+        }
+        wet_ms += (wsum * 0.5f / (float)n - wet_ms) * fm_minf((float)n / (0.8f * EN_SR), 1.0f);
+        hold = wet_ms > WET_RMS * WET_RMS ? WET_RMS * WET_RMS / wet_ms : 1.0f;   /* the power's ratio: firm */
+        yoga_dsp_hold(hold);
+#ifdef PLAT_HOST
+        en_wet_gain = hold;
+        en_lim_gain = lim_g;
+#endif
     }
 }
 

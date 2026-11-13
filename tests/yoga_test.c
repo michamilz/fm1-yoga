@@ -16,7 +16,7 @@
 void en_midi_out(uint32_t st, uint32_t d1, uint32_t d2) { (void)st, (void)d1, (void)d2; }
 
 #define SR 44100
-#define APP_GAIN_FULL 3072u                 /* app.c: MASTER full, with headroom (app_render) */
+#define APP_GAIN_FULL 2730u                 /* app.c: MASTER full, with headroom (app_render) */
 enum { BLOCK = 256, FRAME_BLOCKS = 3 };          /* the UI's frame: ~17 ms */
 static int failures;
 #define CHECK(c, ...) do { int ok_ = (c); printf(ok_ ? "  ok    " : "  FAIL  "); printf(__VA_ARGS__); printf("\n"); \
@@ -655,6 +655,57 @@ static void test_endless(void)
     CHECK(st.state == YS_DONE, "REC: it wakes up and ends");
 }
 
+/* how far the mix went into the soft clip (amb.c: tanh, then * 8300000), from the output's peak: below ~1 it is
+ * still clean */
+static double clip_in(double peak) { return atanh(fmin(peak * 8388608.0 / 8300000.0, 0.99999)); }
+
+/* the space's build-up (amb.c): the drone in a large hall with its echo up, every level at 10, MASTER full, stays out
+ * of the soft clip's hard part; in HERZ, where it builds up little, the drone's sends are hardly held */
+static void space_run(const yp_settings_t *s, double *in, double *held, float *hmin)
+{
+    int32_t buf[2 * BLOCK];
+    double ms = 0, peak = 0;
+    unsigned b = 0, blocks = 0, h = 0;
+    *hmin = 1.0f;
+    en_init();
+    yoga_dsp_init();
+    yp_init();
+    yp_start(s, 7u, 0);
+    while (ms < 240000) {
+        if (b++ % FRAME_BLOCKS == 0)
+            yp_update(s, (uint32_t)ms);
+        en_render(buf, BLOCK, APP_GAIN_FULL);
+        ms += 1000.0 * BLOCK / SR;
+        if (ms < 30000)
+            continue;
+        for (int i = 0; i < 2 * BLOCK; i++)
+            peak = fmax(peak, fabs((double)buf[i]) / 8388608.0);
+        blocks++;
+        h += en_wet_gain < 0.97f;
+        *hmin = fminf(*hmin, en_wet_gain);
+    }
+    *in = clip_in(peak);
+    *held = 100.0 * h / blocks;
+}
+static void test_space(void)
+{
+    yp_settings_t s;
+    double in, held;
+    float hmin;
+    printf("The space's build-up, MASTER full\n");
+    yp_defaults(&s);
+    s.program = YP_ERDEN, s.duration = 0, s.x[YX_RSIZE] = 10, s.x[YX_RECHO] = 10;
+    space_run(&s, &in, &held, &hmin);
+    CHECK(in < 1.1, "ERDEN, hall and echo at 10: into the soft clip at most %.2f (drone's sends held to %.2f)", in, hmin);
+    s.drone = s.space = s.klang = s.garten = 10;
+    space_run(&s, &in, &held, &hmin);
+    CHECK(in < 1.2, "ERDEN, every level at 10 as well: into the soft clip at most %.2f", in);
+    yp_defaults(&s);
+    s.program = YP_HERZ, s.duration = 0;
+    space_run(&s, &in, &held, &hmin);
+    CHECK(hmin > 0.4f && held < 40.0, "HERZ: the drone's sends held %.0f %% of the time, to %.2f at most", held, hmin);
+}
+
 static void test_programs(void)
 {
     yp_settings_t s;
@@ -674,6 +725,8 @@ static void test_programs(void)
             CHECK(t.done_at > 0 && fabs((double)t.done_at / SR - 300) < 3, "%-9s %s ends after %.1f s", YP_NAME[prog],
                   mode ? "BIN" : "ISO", (double)t.done_at / SR);
             CHECK(peak < 0.98 && peak > 0.1, "%-9s %s peak %.3f", YP_NAME[prog], mode ? "BIN" : "ISO", peak);
+            CHECK(clip_in(peak) < 1.1, "%-9s %s into the soft clip at most %.2f", YP_NAME[prog], mode ? "BIN" : "ISO",
+                  clip_in(peak));
             CHECK(step < 0.15, "%-9s %s largest step %.4f (no clicks)", YP_NAME[prog], mode ? "BIN" : "ISO", step);
             CHECK(t.max_beat > 14.4f && t.max_beat <= 18.0f, "%-9s %s wake-up reaches beta (%.2f Hz)", YP_NAME[prog],
                   mode ? "BIN" : "ISO", t.max_beat);
@@ -848,6 +901,7 @@ int main(int argc, char **argv)
         test_endless();
         test_programs();
         test_garden_inst();
+        test_space();
         test_journey();
         test_random(argv[0]);
         printf(failures ? "\n%d failed\n" : "\nall passed\n", failures);

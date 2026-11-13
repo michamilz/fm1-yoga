@@ -76,6 +76,7 @@ static ydrone_t y_dr[2];
 static float y_bin, y_beat, y_detune, y_breath_hz;
 static float g_level, g_bell, g_drone, g_oct, g_fifth, g_noise, g_depth, g_space, g_garden;
 static float g_twin, g_swell, g_ntone, g_echo;
+static float y_hold = 1.0f, g_hold = 1.0f;     /* the drone's sends held (amb.c: the space's build-up) */
 static uint32_t ph_beat, ph_breath, y_noise_l = 0x12345678u, y_noise_r = 0x9E3779B9u;
 static float lp1l, lp2l, lp1r, lp2r;
 static volatile uint32_t y_breath_view;
@@ -97,6 +98,7 @@ void yoga_dsp_init(void)
     y_bin = y_beat = y_detune = y_breath_hz = 0.0f;
     g_level = g_bell = g_drone = g_oct = g_fifth = g_noise = g_depth = g_space = g_garden = 0.0f;
     g_twin = g_swell = g_ntone = g_echo = 0.0f;
+    y_hold = g_hold = 1.0f;
     ph_beat = ph_breath = 0;
     y_noise_l = 0x12345678u;
     y_noise_r = 0x9E3779B9u;
@@ -556,6 +558,8 @@ static void take_strikes(void)
 
 static inline float smooth(float v, float t, float k) { return v + (t - v) * k; }
 
+void yoga_dsp_hold(float g) { y_hold = fm_clampf(g, 0.0f, 1.0f); }
+
 float yoga_dsp_garden(uint32_t n)
 {
     take_targets();
@@ -585,6 +589,7 @@ void yoga_dsp_layer(float *ml, float *mr, float *rsend, float *esend, uint32_t n
     g_swell = smooth(g_swell, y_t.swell, kg);
     g_ntone = smooth(g_ntone, y_t.noise_tone, kg);
     g_echo = smooth(g_echo, y_t.echo, kg);
+    g_hold = smooth(g_hold, y_hold, kf);
     g_hlevel = smooth(g_hlevel, y_t.hand_level, kg);
     g_hspace = smooth(g_hspace, y_t.hand_space, kg);
     g_hecho = smooth(g_hecho, y_t.hand_echo, kg);
@@ -623,7 +628,8 @@ void yoga_dsp_layer(float *ml, float *mr, float *rsend, float *esend, uint32_t n
     (void)fn;
     {
         const float da = g_drone * g_level, na = g_noise * g_level, depth = g_depth, oct = g_oct, fif = g_fifth;
-        const float send = g_space * 0.6f, twin = g_twin, swell = g_swell, ech = g_echo;
+        const float send = g_space * 0.6f * g_hold, twin = g_twin, swell = g_swell, ech = g_echo;
+        const float dech = 0.08f * ech * g_hold;   /* the drone and the surf: held, the bowls not */
         const float n1 = 0.1f + 0.9f * g_ntone, n2 = 2.4f - 1.8f * g_ntone;   /* the surf: hiss .. rumble */
         for (j = 0; j < n; j++) {
             float breath, pulse, amp, l = 0.0f, r = 0.0f, bl = 0.0f, br = 0.0f;
@@ -685,7 +691,7 @@ void yoga_dsp_layer(float *ml, float *mr, float *rsend, float *esend, uint32_t n
             ml[j] += 0.32f * l + 0.6f * bl;
             mr[j] += 0.32f * r + 0.6f * br;
             rsend[j] += (l + r) * send + (bl + br) * 0.7f;
-            esend[j] += ((l + r) * 0.08f + (bl + br) * 0.9f) * ech;
+            esend[j] += (l + r) * dech + (bl + br) * 0.9f * ech;
             {                                                        /* the handpan */
                 float hl = 0.0f, hr = 0.0f;
                 for (b = 0; b < HANDS; b++) {
