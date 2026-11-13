@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "yoga",
+  "name": "FM1 YOGA",
+  "author": "Michael Milz",
+  "license": "MPL-2.0",
+  "tagline": "Klänge für die Endentspannung",
+  "description": "A sound companion for the final relaxation of a yoga class. Guided programs on 174, 396, 432 and 528 Hz drift from theta to delta, isochronic for speakers or binaural for headphones, with breath, singing bowls and an ambient garden, then wake you gently. Play handpan, kalimba or chimes on the keys, or loop them with the sequencer.",
+  "tags": ["ambient", "generative", "sequencer"],
+  "install": "https://michamilz.github.io/fm1-yoga/install/",
+  "site": "https://michamilz.github.io/fm1-yoga/",
+  "source": "https://github.com/michamilz/fm1-yoga",
+  "screenshot": "docs/img/hub-240.png",
+  "hardware": {
+    "models": ["FM-1"],
+    "flash": ["856014", "B36014"],
+    "features": ["usb-audio-in", "usb-audio-out", "velocity", "pressure", "screen-reader"]
+  },
+  "credits": "Built on AMB-1 by Charles Vestal and fm1-base and felucca-bsp, from Felucca by Leo Kuroshita (Huegelton Instruments)."
+}
