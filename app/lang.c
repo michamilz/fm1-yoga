@@ -97,6 +97,11 @@ static int lang2(void) { return lang() == LG_DE ? 0 : 1; }         /* German, or
 static const char *T(int id) { return STR[lang()][id]; }
 static const char *prog_name(int i) { return PROG_NAME[lang()][(unsigned)i % YP_NPROG]; }
 static const char *inst_name(int i) { return INST_NAME[lang()][(unsigned)i % YI_N]; }
+/* a part's name: the bells by the instrument that plays them (GARTEN > GLOCKEN, K1), the others as they are */
+static const char *part_name(int id)
+{
+    return id == S_GLOCKEN && set.yp.x[YX_GINST] > 0 ? inst_name(set.yp.x[YX_GINST] - 1) : T(id);
+}
 static const char *yx_label(int i) { return YX_LABEL[lang2()][(unsigned)i % YX_N]; }
 /* a detail's value in words, where it is a word that changes with the language (else 0: yx_text) */
 static const char *yx_word(int i, int v)

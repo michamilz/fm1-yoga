@@ -171,7 +171,7 @@ static const int8_t PAGE_NAME[NPAGE] = {-1, S_KLANG, S_GARTEN, S_SETUP, -1, S_SE
 static const int8_t SUB_NAME[NPAGE][5] = {{-1, -1, -1, -1, -1}, {-1, S_DRONE, S_ATEM, S_SCHALEN, S_RAUM},
                                           {-1, S_PADS, S_GLOCKEN, S_BASS, S_ECHO}, {S_SYSTEM, S_TAKT, -1, -1, -1},
                                           {S_SPIEL, S_KLANG_SUB, S_RAUM, -1, -1}, {-1, -1, -1, -1, -1}};
-static const char *sub_name(int pg, int sub) { return SUB_NAME[pg][sub] >= 0 ? T(SUB_NAME[pg][sub]) : ""; }
+static const char *sub_name(int pg, int sub) { return SUB_NAME[pg][sub] >= 0 ? part_name(SUB_NAME[pg][sub]) : ""; }
 enum { NSUB = 5 };
 typedef struct {
     const char *label;
@@ -660,7 +660,7 @@ static void mute_key(uint32_t key)
         return;
     m ^= 1u << i;
     yp_mute(m);
-    app_say(T(MUTE_NAME[i]), T(m >> i & 1u ? S_STUMM : S_AN));
+    app_say(part_name(MUTE_NAME[i]), T(m >> i & 1u ? S_STUMM : S_AN));
     ui.redraw_head = ui.redraw_mid = 1;
 }
 

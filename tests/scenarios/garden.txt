@@ -23,3 +23,22 @@ turn SELECT -9
 turn SELECT 2
 wait 100
 shot garten-glocken-reboot.png
+# the bells' name follows their instrument: the overview's row, the sub-page's head, the small key's message
+turn SELECT -9
+wait 100
+shot garten-uebersicht-kalimba.png
+tap ENV
+wait 100
+tap ENV
+turn SELECT 2
+wait 100
+shot garten-kalimba-kopf.png
+tap HOME
+wait 100
+tapkey b7
+wait 100
+expect mute 128
+shot garten-kalimba-stumm.png
+tapkey b7
+wait 100
+expect mute 0

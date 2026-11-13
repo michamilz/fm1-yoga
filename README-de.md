@@ -469,7 +469,8 @@ Die Glocken-Loops können statt der Glocken auch eines der Instrumente der Taste
 Klangschalen oder Koshi. Das wählst du mit K1 auf der Unterseite GLOCKEN; der Pegel der Glocken steht dort deshalb
 nicht, sondern auf der Übersicht (K2). Die Loops haben dafür eigene Stimmen und nehmen dir beim Spielen auf den Tasten
 keine Töne weg. Instrument, Skala und Nachklang der Tasten (SEL) gelten für die Loops nicht: sie spielen die Töne des
-Gartens, und KLANG macht das Instrument heller oder weicher.
+Gartens, und KLANG macht das Instrument heller oder weicher. Wo sonst GLOCKEN steht, auf der Übersicht, im Kopf der
+Unterseite und in der Meldung der kleinen Taste 8, steht dann der Name des Instruments.
 
 ### INSTRUMENT (SEL): die Tastatur
 

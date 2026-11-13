@@ -466,7 +466,8 @@ Instead of the bells, the bell loops can play one of the keys' instruments: hand
 bowls or Koshi. Choose it with K1 on the BELLS sub-page; the bells' level is therefore not there but on the overview
 (K2). The loops have voices of their own for it and take no notes away from you while you play the keys. The keys'
 instrument, scale and ring (SEL) do not apply to the loops: they play the garden's notes, and TONE makes the
-instrument brighter or softer.
+instrument brighter or softer. Wherever BELLS would appear, on the overview, at the top of the sub-page and in the
+message of small key 8, the instrument's name appears instead.
 
 ### INSTRUMENT (SEL): the keys
 
